@@ -1,34 +1,35 @@
 import { useEffect, useState } from "react";
 import {
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    View
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View
 } from "react-native";
 import { Agenda } from "react-native-calendars";
 import { useFormContext } from "./context/formContext";
 
 export default function CalendarScreen() {
   const [items, setItems] = useState({});
-  const { formData } = useFormContext();
+  const { animals } = useFormContext();
 
   useEffect(() => {
-    if (formData.birthdate) {
-      setItems((prev) => ({
-        ...prev,
-        [formData.birthdate]: [
-          ...(prev[formData.birthdate] || []),
-          { name: `Рождение ${formData.name || "питомца"}` },
-        ],
-      }));
-    }
-  }, [formData.birthdate, formData.name]);
+    const newItems = {};
+    animals.forEach((animal) => {
+      if (animal.birthdate) {
+        if (!newItems[animal.birthdate]) newItems[animal.birthdate] = [];
+        newItems[animal.birthdate].push({
+          name: `Рождение ${animal.name || "питомца"}`
+        });
+      }
+    });
+    setItems(newItems);
+  }, [animals]);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Agenda
         items={items}
-        selected={formData.birthdate || new Date().toISOString().split("T")[0]}
+        selected={Object.keys(items)[0] || new Date().toISOString().split("T")[0]}
         renderItem={(item) => (
           <View style={styles.item}>
             <Text style={styles.itemText}>{item.name}</Text>

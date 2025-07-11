@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import {
-    Dimensions,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useFormContext } from "./context/formContext";
 
@@ -16,7 +16,7 @@ const fields = [
 ];
 
 export default function AddAnimalScreen() {
-  const { formData, setFormData } = useFormContext();
+  const { formData, setFormData, addAnimal } = useFormContext();
   const [activeTab, setActiveTab] = useState("Профиль");
 
   const handleChange = (name: string, value: string) => {
@@ -37,7 +37,7 @@ export default function AddAnimalScreen() {
             <View style={styles.imagePlaceholder}>
               <Text style={styles.imageText}>Фото питомца</Text>
             </View>
-            <TouchableOpacity style={styles.publishButton}>
+            <TouchableOpacity style={styles.publishButton} onPress={addAnimal}>
               <Text style={styles.publishButtonText}>Опубликовать</Text>
             </TouchableOpacity>
           </View>
