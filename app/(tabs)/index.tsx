@@ -1,18 +1,17 @@
+import { useRouter } from "expo-router";
 import React, { useState } from 'react';
 import {
+  Button,
   SafeAreaView,
   StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
   View
 } from 'react-native';
-import { Agenda } from 'react-native-calendars';
  
 
 export default function Index() {
   const [items, setItems] = useState({});
   const [date, setDate] = useState('');
+  const router = useRouter();
   const [eventName, setEventName] = useState('');
 
   // Notifications.setNotificationHandler({
@@ -53,32 +52,16 @@ export default function Index() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.form}>
-        <TextInput
-          placeholder="Дата (YYYY-MM-DD)"
-          style={styles.input}
-          value={date}
-          onChangeText={setDate}
+        <Button
+          title="Перейти в Профиль"
+          onPress={() => router.push("/(tabs)/addAnimal")}
         />
-        <TextInput
-          placeholder="Название события"
-          style={styles.input}
-          value={eventName}
-          onChangeText={setEventName}
+        <Button
+          title="Перейти в календарь"
+          onPress={() => router.push("/(tabs)/calendar")}
         />
-        <TouchableOpacity style={styles.button} onPress={addEvent}>
-          <Text style={styles.buttonText}>Добавить</Text>
-        </TouchableOpacity>
       </View>
 
-      <Agenda
-        items={items}
-        selected={Object.keys(items)[0]}
-        renderItem={(item) => (
-          <View style={styles.item}>
-            <Text style={styles.itemText}>{item.name}</Text>
-          </View>
-        )}
-      />
     </SafeAreaView>
   );
 }
