@@ -18,7 +18,7 @@ export default function CalendarScreen() {
       if (animal.birthdate) {
         if (!newItems[animal.birthdate]) newItems[animal.birthdate] = [];
         newItems[animal.birthdate].push({
-          name: `Рождение ${animal.name || "питомца"}`
+          name: ` ${animal.name || "питомца"}`
         });
       }
     });

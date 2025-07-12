@@ -11,8 +11,8 @@ import {
 import { useFormContext } from "./context/formContext";
 
 const fields = [
-  ["Кличка", "name"],
-  ["Дата рождения", "birthdate"],
+  ["Добавить событие", "name"],
+  ["Дата", "birthdate"],
 ];
 
 export default function AddAnimalScreen() {
