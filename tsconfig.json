@@ -5,6 +5,9 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@react-native-picker/picker": [
+        "./node_modules/@react-native-picker/picker/typings/index"
       ]
     }
   },
@@ -13,5 +16,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-  ]
+  ],
 }

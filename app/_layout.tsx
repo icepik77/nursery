@@ -1,10 +1,10 @@
 import { Stack } from "expo-router";
-import { FormProvider } from "./(tabs)/context/formContext";
+import { PetProvider } from "./(tabs)/context/formContext";
 
 export default function RootLayout() {
    return (
-    <FormProvider>
+    <PetProvider>
       <Stack />
-    </FormProvider>
+    </PetProvider>
   );
 }
