@@ -36,7 +36,7 @@ export default function PetCard({ id, name, age, imageUrl }: PetCardProps) {
 
   return (
     <View style={styles.card}>
-      <Image source={imageUrl} style={styles.image} />
+      <Image source={{ uri: imageUrl }} style={styles.image} />
       <View style={styles.rightContent}>
         <View style={styles.nameRow}>
           <Text style={styles.name}>{name}</Text>
@@ -68,47 +68,6 @@ export default function PetCard({ id, name, age, imageUrl }: PetCardProps) {
   );
 }
 
-
-
-// export default function PetCard({ name, age, imageUrl }: PetCardProps) {
-//   const [menuOpen, setMenuOpen] = useState(false);
-
-//   return (
-//     <View style={styles.card}>
-//       {/* Левая часть — фото */}
-//       <Image source={imageUrl} style={styles.image} />
-
-//       {/* Правая часть — имя и меню */}
-//       <View style={styles.rightContent}>
-//         <View style={styles.nameRow}>
-//           <Text style={styles.name}>{name}</Text>
-//           <TouchableOpacity onPress={() => setMenuOpen(true)}>
-//             <Text style={styles.menuText}>⋯</Text>
-//           </TouchableOpacity>
-//         </View>
-//       </View>
-
-//       {/* Всплывающее меню */}
-//       <Modal
-//         transparent
-//         animationType="fade"
-//         visible={menuOpen}
-//         onRequestClose={() => setMenuOpen(false)}
-//       >
-//         <Pressable style={styles.modalOverlay} onPress={() => setMenuOpen(false)}>
-//           <View style={styles.menuContainer}>
-//             <TouchableOpacity style={styles.menuItem}>
-//               <Text>✏️ Изменить</Text>
-//             </TouchableOpacity>
-//             <TouchableOpacity style={styles.menuItem}>
-//               <Text style={{ color: "red" }}>🗑️ Удалить</Text>
-//             </TouchableOpacity>
-//           </View>
-//         </Pressable>
-//       </Modal>
-//     </View>
-//   );
-// }
 
 const styles = StyleSheet.create({
   card: {
