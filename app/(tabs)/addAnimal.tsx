@@ -1,3 +1,4 @@
+import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
 import {
@@ -10,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
 import { usePetContext } from "./context/formContext";
 
 const TABS = ["Профиль", "Вет. паспорт", "Документы", "Заметки"];
@@ -22,24 +24,58 @@ export default function MainScreen() {
   const { selectedPetId, addEvent, formData, setFormData, addPet } = usePetContext();
 
   const pickImage = async () => {
-    // Запрос разрешений
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      alert("Разрешение на доступ к фото необходимо!");
-      return;
-    }
-
-    // Открыть галерею
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       quality: 1,
     });
 
-    if (!result.canceled && result.assets.length > 0) {
-      setImageUri(result.assets[0].uri);
-    }
+    if (!result.canceled) {
+      const pickedUri = result.assets[0].uri;
+
+      const fileName = pickedUri.split("/").pop();
+      const dir = FileSystem.documentDirectory ?? FileSystem.cacheDirectory ?? "";
+      const newPath = dir + fileName;
+
+      await FileSystem.copyAsync({
+        from: pickedUri,
+        to: newPath,
+      });
+
+      // 💡 Обновляем локальное состояние
+      setImageUri(newPath);
+
+      // 💡 И сохраняем в formData
+      setFormData({
+        ...formData,
+        imageUri: newPath,
+      });
+    };
   };
+
+  // const pickImage = async () => {
+  //   // Запрос разрешений
+  //   const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  //   if (!permissionResult.granted) {
+  //     alert("Разрешение на доступ к фото необходимо!");
+  //     return;
+  //   }
+
+  //   // Открыть галерею
+  //   const result = await ImagePicker.launchImageLibraryAsync({
+  //     mediaTypes: ImagePicker.MediaTypeOptions.Images,
+  //     allowsEditing: true,
+  //     quality: 1,
+  //   });
+
+  //   console.log("here 2");
+
+  //   if (!result.canceled && result.assets.length > 0) {
+  //     setImageUri(result.assets[0].uri);
+  //     setFormData({...formData, imageUri: result.assets[0].uri});
+  //     console.log("result: " + result.assets[0].uri); 
+  //   }
+  // };
 
   const handleAddEvent = () => {
     if (!selectedPetId) {

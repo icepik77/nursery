@@ -17,6 +17,7 @@ export type Pet = {
   height: string;
   color: string;
   note: string;
+  imageUri?: string;
 };
 
 // Тип формы без id
@@ -69,6 +70,7 @@ export const PetProvider = ({ children }: PetProviderProps) => {
 
   const addPet = () => {
     if (formData.name && formData.birthdate) {
+      console.log("formData.imageUri" + formData.imageUri);
       const newPet: Pet = {
         id: Date.now().toString(),
         ...formData,

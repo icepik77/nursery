@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -16,6 +16,10 @@ import { usePetContext } from "./context/formContext";
 export default function Index() {
   const router = useRouter();
   const { pets } = usePetContext();
+
+  useEffect(() =>{
+    console.log("pets:", pets);
+  }, [pets])
 
 
   return (
@@ -46,7 +50,8 @@ export default function Index() {
               key={pet.id}
               id={pet.id}
               name={pet.name}
-              age={"1"}            
+              age={"1"}
+              imageUrl={pet.imageUri}            
             />
           ))}
         </View>
