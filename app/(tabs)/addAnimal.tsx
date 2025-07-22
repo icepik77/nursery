@@ -1,6 +1,8 @@
+import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
 import {
   Dimensions,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -8,51 +10,125 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useFormContext } from "./context/formContext";
+import { usePetContext } from "./context/formContext";
 
-const fields = [
-  ["Добавить событие", "name"],
-  ["Дата", "birthdate"],
-];
+const TABS = ["Профиль", "Вет. паспорт", "Документы", "Заметки"];
 
-export default function AddAnimalScreen() {
-  const { formData, setFormData, addAnimal } = useFormContext();
-  const [activeTab, setActiveTab] = useState("Профиль");
+export default function MainScreen() {
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [eventTitle, setEventTitle] = useState("");
+  const [eventDate, setEventDate] = useState("");
 
-  const handleChange = (name: string, value: string) => {
-    setFormData({ ...formData, [name]: value });
+  const { selectedPetId, addEvent, formData, setFormData, addPet } = usePetContext();
+
+  const pickImage = async () => {
+    // Запрос разрешений
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      alert("Разрешение на доступ к фото необходимо!");
+      return;
+    }
+
+    // Открыть галерею
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets.length > 0) {
+      setImageUri(result.assets[0].uri);
+    }
+  };
+
+  const handleAddEvent = () => {
+    if (!selectedPetId) {
+      alert("Выберите питомца перед добавлением события");
+      return;
+    }
+
+    addEvent(selectedPetId, { title: eventTitle, date: eventDate });
+    setEventTitle("");
+    setEventDate("");
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>Добавление животного</Text>
+      <Text style={styles.title}>Главная</Text>
 
       <View style={styles.card}>
-        <View style={styles.tabs}>
-          <Text style={[styles.tabText, styles.activeTab]}>{activeTab}</Text>
+        {/* Tabs */}
+        <View style={styles.tabsContainer}>
+          {TABS.map((tab) => (
+            <TouchableOpacity key={tab} style={styles.tabButton}>
+              <Text style={styles.tabText}>{tab}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
+        {/* Main content */}
         <View style={styles.contentWrapper}>
-          <View style={styles.leftSide}>
-            <View style={styles.imagePlaceholder}>
-              <Text style={styles.imageText}>Фото питомца</Text>
-            </View>
-            <TouchableOpacity style={styles.publishButton} onPress={addAnimal}>
+          {/* Left side: photo + button */}
+          <View style={styles.leftBlock}>
+            <TouchableOpacity onPress={pickImage}>
+              {imageUri ? (
+                <Image
+                  source={{ uri: imageUri }}
+                  style={styles.imagePlaceholder}
+                />
+              ) : (
+                <View style={styles.imagePlaceholder}>
+                  <Text style={styles.imageText}>Фото питомца</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.publishButton} onPress={addPet}>
               <Text style={styles.publishButtonText}>Опубликовать</Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.rightSide}>
-            {fields.map(([label, name]) => (
+          {/* Right side: inputs */}
+          <View style={styles.rightBlock}>
+            {[
+              ["Кличка", "name"],
+              ["Пол", "gender"],
+              ["Дата рождения", "birthdate"],
+              ["Номер чипа", "chip"],
+              ["Порода", "breed"],
+              ["Вес", "weight"],
+              ["Рост в холке", "height"],
+              ["Окрас", "color"],
+              ["Примечание", "note"],
+            ].map(([label, name]) => (
               <View key={name} style={styles.inputGroup}>
                 <Text style={styles.label}>{label}</Text>
                 <TextInput
                   style={styles.input}
-                  value={formData[name as keyof typeof formData] || ""}
-                  onChangeText={(text) => handleChange(name, text)}
+                  value={formData[name as keyof typeof formData]}
+                  onChangeText={(text) =>
+                    setFormData((prev) => ({ ...prev, [name]: text }))
+                  }
                 />
               </View>
             ))}
+          </View>
+          <View style={styles.eventSection}>
+            <Text style={styles.label}>Добавить событие</Text>
+            <TextInput
+              placeholder="Название события"
+              value={eventTitle}
+              onChangeText={setEventTitle}
+              style={styles.input}
+            />
+            <TextInput
+              placeholder="Дата (ГГГГ-ММ-ДД)"
+              value={eventDate}
+              onChangeText={setEventDate}
+              style={styles.input}
+            />
+            <TouchableOpacity onPress={handleAddEvent} style={styles.publishButton}>
+              <Text style={styles.publishButtonText}>Добавить событие</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -60,68 +136,100 @@ export default function AddAnimalScreen() {
   );
 }
 
+const screenWidth = Dimensions.get("window").width;
+
 const styles = StyleSheet.create({
-  container: { padding: 16, backgroundColor: "#F9FAFB" },
-  header: { fontSize: 28, fontWeight: "bold", marginBottom: 16, alignSelf: "center" },
+  container: {
+    padding: 16,
+    backgroundColor: "#F9FAFB",
+    flexGrow: 1,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 24,
+    textAlign: "center",
+  },
   card: {
     backgroundColor: "#fff",
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     shadowColor: "#000",
     shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowRadius: 10,
     elevation: 4,
   },
-  tabs: {
+  tabsContainer: {
     flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "space-between",
-    marginBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
-    paddingBottom: 8,
+    paddingBottom: 12,
+    marginBottom: 16,
+  },
+  tabButton: {
+    paddingBottom: 6,
+    borderBottomWidth: 2,
+    borderBottomColor: "transparent",
   },
   tabText: {
     fontSize: 16,
-    fontWeight: "500",
     color: "#4B5563",
-    borderBottomWidth: 2,
-    borderBottomColor: "transparent",
-    paddingBottom: 4,
-    marginRight: 12,
-  },
-  activeTab: {
-    color: "#2563EB",
-    borderBottomColor: "#2563EB",
   },
   contentWrapper: {
-    flexDirection: Dimensions.get("window").width > 768 ? "row" : "column",
+    flexDirection: screenWidth > 768 ? "row" : "column",
     gap: 16,
   },
-  leftSide: { flex: 1, alignItems: "center", gap: 16 },
+  leftBlock: {
+    flex: 1,
+    alignItems: "center",
+    gap: 16,
+  },
   imagePlaceholder: {
     width: 250,
     height: 250,
     backgroundColor: "#D1D5DB",
-    borderRadius: 12,
+    borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
   },
-  imageText: { color: "#6B7280" },
+  imageText: {
+    color: "#6B7280",
+  },
   publishButton: {
     backgroundColor: "#041029",
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
   },
-  publishButtonText: { color: "#fff", fontWeight: "bold" },
-  rightSide: { flex: 1 },
-  inputGroup: { marginBottom: 12 },
-  label: { fontSize: 14, fontWeight: "500", marginBottom: 4 },
+  publishButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+  rightBlock: {
+    flex: 1,
+    gap: 12,
+  },
+  inputGroup: {
+    marginBottom: 12,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "500",
+    marginBottom: 4,
+  },
   input: {
     backgroundColor: "#F3F4F6",
+    borderRadius: 8,
     padding: 10,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
+    fontSize: 16,
   },
+  eventSection: {
+  marginTop: 24,
+  paddingTop: 16,
+  borderTopWidth: 1,
+  borderTopColor: "#E5E7EB",
+  gap: 12,
+},
 });

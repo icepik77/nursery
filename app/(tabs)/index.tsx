@@ -1,70 +1,107 @@
 import { useRouter } from "expo-router";
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  Button,
-  SafeAreaView,
+  ScrollView,
   StyleSheet,
+  Text,
+  TouchableOpacity,
   View
 } from 'react-native';
- 
+
+import ControlsBar from "@/components/ControlsBar";
+import PetCard from "@/components/PetCard";
+
+import { usePetContext } from "./context/formContext";
 
 export default function Index() {
-  const [items, setItems] = useState({});
-  const [date, setDate] = useState('');
   const router = useRouter();
-  const [eventName, setEventName] = useState('');
+  const { pets } = usePetContext();
 
-  // Notifications.setNotificationHandler({
-  //   handleNotification: async () => ({
-  //     shouldShowAlert: true,
-  //     shouldPlaySound: false,
-  //     shouldSetBadge: false
-  //   })
-  // });
-
-  // useEffect(() => {
-  //   registerForPushNotificationsAsync();
-
-  //   const subscription = Notifications.addNotificationReceivedListener(notification => {
-  //     console.log('Уведомление:', notification);
-  //   });
-
-  //   return () => subscription.remove();
-  // }, []);
-
-
-  const addEvent = () => {
-    if (!date || !eventName) return;
-
-    setItems(prevItems => {
-      const dayItems = prevItems[date] || [];
-      return {
-        ...prevItems,
-        [date]: [...dayItems, { name: eventName }]
-      };
-    });
-
-    //очистка полей
-    setDate('');
-    setEventName('');
-  };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <View style={styles.form}>
-        <Button
-          title="Перейти в Профиль"
-          onPress={() => router.push("/(tabs)/addAnimal")}
-        />
-        <Button
-          title="Перейти в календарь"
-          onPress={() => router.push("/(tabs)/calendar")}
-        />
+    <ScrollView contentContainerStyle={styles.container}>
+      {/* Шапка */}
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Главная</Text>
+        <ControlsBar />
+        <TouchableOpacity 
+          style={styles.addButton}
+          onPress={() => router.push("/addAnimal")}
+        >
+          <Text style={styles.addButtonText}>Добавить питомца</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.addButton}
+          onPress={() => router.push("/calendar")}
+        >
+          <Text style={styles.addButtonText}>Перейти в календарь</Text>
+        </TouchableOpacity>
       </View>
 
-    </SafeAreaView>
+      {/* Карточки */}
+        <View style={styles.cardsContainer}>
+          {pets.map((pet) => (
+            <PetCard
+              key={pet.id}
+              id={pet.id}
+              name={pet.name}
+              age={"1"}            
+            />
+          ))}
+        </View>
+    </ScrollView>
   );
 }
+
+
+
+
+// import { useRouter } from "expo-router";
+// import React from 'react';
+// import {
+//   ScrollView,
+//   StyleSheet,
+//   Text,
+//   TouchableOpacity,
+//   View
+// } from 'react-native';
+
+// import ControlsBar from "@/components/ControlsBar";
+// import PetCard from "@/components/PetCard";
+
+// export default function Index() {
+//   const router = useRouter();
+
+//   return (
+//     <ScrollView contentContainerStyle={styles.container}>
+//       {/* Шапка */}
+//       <View style={styles.header}>
+//         <Text style={styles.headerText}>Главная</Text>
+//         <ControlsBar />
+//         <TouchableOpacity 
+//           style={styles.addButton}
+//           onPress={() => router.push("/addAnimal")}
+//         >
+//           <Text style={styles.addButtonText}>Добавить питомца</Text>
+//         </TouchableOpacity>
+
+//         <TouchableOpacity 
+//           style={styles.addButton}
+//           onPress={() => router.push("/calendar")}
+//         >
+//           <Text style={styles.addButtonText}>Перейти в календарь</Text>
+//         </TouchableOpacity>
+//       </View>
+
+//       {/* Карточки */}
+//       <View style={styles.cardsContainer}>
+//         <PetCard name="Барсик" age="2 года" imageUrl={require("../../assets/images/cat.jpeg")} />
+//         <PetCard name="Шарик" age="3 года" imageUrl={require("../../assets/images/dog.jpg")} />
+//       </View>
+//     </ScrollView>
+//   );
+// }
 
 const styles = StyleSheet.create({
   form: {
@@ -97,6 +134,41 @@ const styles = StyleSheet.create({
   },
   itemText: {
     color: '#555'
-  }
+  },
+  container: {
+    alignItems: "center",
+    padding: 16,
+  },
+  header: {
+    width: "100%",
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  headerText: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 12,
+  },
+  addButton: {
+    backgroundColor: "#041029",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  addButtonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  cardsContainer: {
+    width: "100%",
+    alignItems: "center",
+    gap: 16,
+  },
+  picker: {
+    height: 50,
+    width:50
+  },
 });
 
