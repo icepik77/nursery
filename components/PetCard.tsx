@@ -10,15 +10,22 @@ import {
 } from "react-native";
 
 import { usePetContext } from "@/app/(tabs)/context/formContext";
-
 interface PetCardProps {
   id: string;
   name: string;
-  age: string;
+  age?: string;
+  breed?: string;
+  gender?: string;
   imageUrl?: any;
+  birthdate?: string,
+  chip?: string,
+  weight?: string,
+  height?: string,
+  color?: string,
+  note?: string,
 }
 
-export default function PetCard({ id, name, age, imageUrl }: PetCardProps) {
+export default function PetCard({ id, name, age, breed, imageUrl, gender }: PetCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { removePet, setSelectedPetId } = usePetContext();
 
@@ -34,6 +41,8 @@ export default function PetCard({ id, name, age, imageUrl }: PetCardProps) {
     setMenuOpen(false);
   };
 
+  const genderSymbol = gender === "мужской" ? "♂" : gender === "женский" ? "♀" : "";
+
   return (
     <View style={styles.card}>
       <Image source={{ uri: imageUrl }} style={styles.image} />
@@ -44,7 +53,9 @@ export default function PetCard({ id, name, age, imageUrl }: PetCardProps) {
             <Text style={styles.menuText}>⋯</Text>
           </TouchableOpacity>
         </View>
-        <Text>{age}</Text>
+        <Text><Text style={styles.title}>Возраст:</Text> {age}</Text>
+        <Text><Text style={styles.title}>Пол:</Text> {genderSymbol}</Text>
+        <Text><Text style={styles.title}>Порода:</Text> {breed}</Text>
       </View>
 
       <Modal
@@ -127,4 +138,7 @@ const styles = StyleSheet.create({
   menuItem: {
     paddingVertical: 10,
   },
+  title: {
+    fontWeight: 600,
+  }
 });
