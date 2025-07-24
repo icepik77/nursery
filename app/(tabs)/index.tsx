@@ -50,7 +50,9 @@ export default function Index() {
               key={pet.id}
               id={pet.id}
               name={pet.name}
-              age={"1"}
+              breed={pet.breed}
+              gender={pet.gender}
+              age={"1 год"}
               imageUrl={pet.imageUri}            
             />
           ))}
@@ -58,55 +60,6 @@ export default function Index() {
     </ScrollView>
   );
 }
-
-
-
-
-// import { useRouter } from "expo-router";
-// import React from 'react';
-// import {
-//   ScrollView,
-//   StyleSheet,
-//   Text,
-//   TouchableOpacity,
-//   View
-// } from 'react-native';
-
-// import ControlsBar from "@/components/ControlsBar";
-// import PetCard from "@/components/PetCard";
-
-// export default function Index() {
-//   const router = useRouter();
-
-//   return (
-//     <ScrollView contentContainerStyle={styles.container}>
-//       {/* Шапка */}
-//       <View style={styles.header}>
-//         <Text style={styles.headerText}>Главная</Text>
-//         <ControlsBar />
-//         <TouchableOpacity 
-//           style={styles.addButton}
-//           onPress={() => router.push("/addAnimal")}
-//         >
-//           <Text style={styles.addButtonText}>Добавить питомца</Text>
-//         </TouchableOpacity>
-
-//         <TouchableOpacity 
-//           style={styles.addButton}
-//           onPress={() => router.push("/calendar")}
-//         >
-//           <Text style={styles.addButtonText}>Перейти в календарь</Text>
-//         </TouchableOpacity>
-//       </View>
-
-//       {/* Карточки */}
-//       <View style={styles.cardsContainer}>
-//         <PetCard name="Барсик" age="2 года" imageUrl={require("../../assets/images/cat.jpeg")} />
-//         <PetCard name="Шарик" age="3 года" imageUrl={require("../../assets/images/dog.jpg")} />
-//       </View>
-//     </ScrollView>
-//   );
-// }
 
 const styles = StyleSheet.create({
   form: {

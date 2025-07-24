@@ -1,5 +1,6 @@
 import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   Dimensions,
@@ -20,8 +21,8 @@ export default function MainScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [eventTitle, setEventTitle] = useState("");
   const [eventDate, setEventDate] = useState("");
-
   const { selectedPetId, addEvent, formData, setFormData, addPet } = usePetContext();
+  const router = useRouter(); 
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -53,30 +54,6 @@ export default function MainScreen() {
     };
   };
 
-  // const pickImage = async () => {
-  //   // Запрос разрешений
-  //   const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  //   if (!permissionResult.granted) {
-  //     alert("Разрешение на доступ к фото необходимо!");
-  //     return;
-  //   }
-
-  //   // Открыть галерею
-  //   const result = await ImagePicker.launchImageLibraryAsync({
-  //     mediaTypes: ImagePicker.MediaTypeOptions.Images,
-  //     allowsEditing: true,
-  //     quality: 1,
-  //   });
-
-  //   console.log("here 2");
-
-  //   if (!result.canceled && result.assets.length > 0) {
-  //     setImageUri(result.assets[0].uri);
-  //     setFormData({...formData, imageUri: result.assets[0].uri});
-  //     console.log("result: " + result.assets[0].uri); 
-  //   }
-  // };
-
   const handleAddEvent = () => {
     if (!selectedPetId) {
       alert("Выберите питомца перед добавлением события");
@@ -86,6 +63,11 @@ export default function MainScreen() {
     addEvent(selectedPetId, { title: eventTitle, date: eventDate });
     setEventTitle("");
     setEventDate("");
+  };
+
+  const handleSubmit = () => {
+    addPet(); // or await addPet() if it's async
+    router.replace("/"); // or router.push("/") if you want to stack it
   };
 
   return (
@@ -118,7 +100,7 @@ export default function MainScreen() {
                 </View>
               )}
             </TouchableOpacity>
-            <TouchableOpacity style={styles.publishButton} onPress={addPet}>
+            <TouchableOpacity style={styles.publishButton} onPress={handleSubmit}>
               <Text style={styles.publishButtonText}>Опубликовать</Text>
             </TouchableOpacity>
           </View>
