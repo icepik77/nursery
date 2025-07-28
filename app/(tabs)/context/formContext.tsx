@@ -5,6 +5,7 @@ import React, {
   useState,
 } from "react";
 
+
 // Тип для одного питомца
 export type Pet = {
   id: string;
@@ -31,6 +32,7 @@ export type PetEvent = {
 
 interface PetContextType {
   pets: Pet[];
+  setPets: React.Dispatch<React.SetStateAction<Pet[]>>;
   selectedPetId: string | null;
   setSelectedPetId: (id: string | null) => void;
   selectedPet: Pet | null;
@@ -49,22 +51,75 @@ interface PetProviderProps {
 }
 
 export const PetProvider = ({ children }: PetProviderProps) => {
-  const [pets, setPets] = useState<Pet[]>([]);
+
+  const mockData: Pet[] = [
+    {
+      id: "1",
+      name: "Барсик",
+      gender: "мужской",
+      birthdate: "2019-05-12",
+      chip: "001234567",
+      breed: "сибирская",
+      weight: "6",
+      height: "28",
+      color: "серый",
+      note: "любит лазать по шкафам",
+    },
+    {
+      id: "2",
+      name: "Мурка",
+      gender: "женский",
+      birthdate: "2021-08-03",
+      chip: "009876543",
+      breed: "британская короткошерстная",
+      weight: "4",
+      height: "25",
+      color: "голубой",
+      note: "очень ласковая",
+    },
+    {
+      id: "3",
+      name: "Рекс",
+      gender: "мужской",
+      birthdate: "2020-12-01",
+      chip: "004567891",
+      breed: "овчарка",
+      weight: "30",
+      height: "60",
+      color: "черно-подпалый",
+      note: "служебная собака",
+    },
+    {
+      id: "4",
+      name: "Белка",
+      gender: "женский",
+      birthdate: "2018-03-21",
+      chip: "003456789",
+      breed: "лайка",
+      weight: "18",
+      height: "45",
+      color: "белая",
+      note: "охотничья собака",
+    },
+    {
+      id: "5",
+      name: "Том",
+      gender: "мужской",
+      birthdate: "2022-07-15",
+      chip: "007654321",
+      breed: "мейн-кун",
+      weight: "7",
+      height: "35",
+      color: "рыжий",
+      note: "любит играть с мячиком",
+    },
+  ];
+  
+  const [pets, setPets] = useState<Pet[]>(mockData);
   const [selectedPetId, setSelectedPetId] = useState<string | null>(null);
 
-  const defaultFormData = {
-    name: "",
-    gender: "мужской",
-    birthdate: "2020-01-01",
-    chip: "123456789",
-    breed: "дворняга",
-    weight: "10",
-    height: "30",
-    color: "белый",
-    note: "без примечаний",
-  };
-
-  const [formData, setFormData] = useState<PetForm>(defaultFormData);
+  const { id, ...firstPetForm } = mockData[0];
+  const [formData, setFormData] = useState<PetForm>(firstPetForm);
 
   const [events, setEvents] = useState<Record<string, PetEvent[]>>({});
 
@@ -76,18 +131,18 @@ export const PetProvider = ({ children }: PetProviderProps) => {
         ...formData,
       };
       setPets((prev) => [...prev, newPet]);
-      // setFormData({
-      //   name: "",
-      //   gender: "",
-      //   birthdate: "",
-      //   chip: "",
-      //   breed: "",
-      //   weight: "",
-      //   height: "",
-      //   color: "",
-      //   note: "",
-      // });
-      setFormData(defaultFormData);
+      setFormData({
+        name: "",
+        gender: "",
+        birthdate: "",
+        chip: "",
+        breed: "",
+        weight: "",
+        height: "",
+        color: "",
+        note: "",
+        imageUri: "",
+      });
     }
   };
 
@@ -119,6 +174,7 @@ export const PetProvider = ({ children }: PetProviderProps) => {
     <PetContext.Provider
       value={{
         pets,
+        setPets,
         selectedPetId,
         setSelectedPetId,
         selectedPet,
