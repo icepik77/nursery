@@ -23,9 +23,10 @@ interface PetCardProps {
   height?: string,
   color?: string,
   note?: string,
+  onPress?: () => void;
 }
 
-export default function PetCard({ id, name, age, breed, imageUrl, gender }: PetCardProps) {
+export default function PetCard({ id, name, age, breed, imageUrl, gender, onPress }: PetCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { removePet, setSelectedPetId } = usePetContext();
 
@@ -45,36 +46,38 @@ export default function PetCard({ id, name, age, breed, imageUrl, gender }: PetC
 
   return (
     <View style={styles.card}>
-      <Image source={{ uri: imageUrl }} style={styles.image} />
-      <View style={styles.rightContent}>
-        <View style={styles.nameRow}>
-          <Text style={styles.name}>{name}</Text>
-          <TouchableOpacity onPress={() => setMenuOpen(true)}>
-            <Text style={styles.menuText}>⋯</Text>
-          </TouchableOpacity>
-        </View>
-        <Text><Text style={styles.title}>Возраст:</Text> {age}</Text>
-        <Text><Text style={styles.title}>Пол:</Text> {genderSymbol}</Text>
-        <Text><Text style={styles.title}>Порода:</Text> {breed}</Text>
-      </View>
-
-      <Modal
-        transparent
-        animationType="fade"
-        visible={menuOpen}
-        onRequestClose={() => setMenuOpen(false)}
-      >
-        <Pressable style={styles.modalOverlay} onPress={() => setMenuOpen(false)}>
-          <View style={styles.menuContainer}>
-            <TouchableOpacity style={styles.menuItem} onPress={handleEdit}>
-              <Text>✏️ Изменить</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
-              <Text style={{ color: "red" }}>🗑️ Удалить</Text>
+      <Pressable onPress={onPress} style={styles.card}>
+        <Image source={{ uri: imageUrl }} style={styles.image} />
+        <View style={styles.rightContent}>
+          <View style={styles.nameRow}>
+            <Text style={styles.name}>{name}</Text>
+            <TouchableOpacity onPress={() => setMenuOpen(true)}>
+              <Text style={styles.menuText}>⋯</Text>
             </TouchableOpacity>
           </View>
-        </Pressable>
-      </Modal>
+          <Text><Text style={styles.title}>Возраст:</Text> {age}</Text>
+          <Text><Text style={styles.title}>Пол:</Text> {genderSymbol}</Text>
+          <Text><Text style={styles.title}>Порода:</Text> {breed}</Text>
+        </View>
+
+        <Modal
+          transparent
+          animationType="fade"
+          visible={menuOpen}
+          onRequestClose={() => setMenuOpen(false)}
+        >
+          <Pressable style={styles.modalOverlay} onPress={() => setMenuOpen(false)}>
+            <View style={styles.menuContainer}>
+              <TouchableOpacity style={styles.menuItem} onPress={handleEdit}>
+                <Text>✏️ Изменить</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
+                <Text style={{ color: "red" }}>🗑️ Удалить</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Modal>
+      </Pressable>
     </View>
   );
 }

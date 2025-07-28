@@ -1,5 +1,5 @@
-import { useRouter } from "expo-router";
-import React, { useEffect } from 'react';
+import { Link, useRouter } from "expo-router";
+import React from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -17,10 +17,6 @@ export default function Index() {
   const router = useRouter();
   const { pets } = usePetContext();
 
-  useEffect(() =>{
-    console.log("pets:", pets);
-  }, [pets])
-
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -30,7 +26,7 @@ export default function Index() {
         <ControlsBar />
         <TouchableOpacity 
           style={styles.addButton}
-          onPress={() => router.push("/addAnimal")}
+          onPress={() => router.push("/createAnimal")}
         >
           <Text style={styles.addButtonText}>Добавить питомца</Text>
         </TouchableOpacity>
@@ -46,15 +42,19 @@ export default function Index() {
       {/* Карточки */}
         <View style={styles.cardsContainer}>
           {pets.map((pet) => (
-            <PetCard
-              key={pet.id}
-              id={pet.id}
-              name={pet.name}
-              breed={pet.breed}
-              gender={pet.gender}
-              age={"1 год"}
-              imageUrl={pet.imageUri}            
-            />
+            <Link href={{
+              pathname: '/animal/[id]',
+              params: { id: 'bacon' }
+            }} asChild key={pet.id}>
+              <PetCard
+                id={pet.id}
+                name={pet.name}
+                breed={pet.breed}
+                gender={pet.gender}
+                age={"1 год"}
+                imageUrl={pet.imageUri}
+              />
+            </Link>
           ))}
         </View>
     </ScrollView>
