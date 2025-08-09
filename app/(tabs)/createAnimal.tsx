@@ -1,5 +1,7 @@
+import DateTimePicker from "@react-native-community/datetimepicker";
 import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
+
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -10,17 +12,18 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
+import { format } from "date-fns"; // 💡 Для форматирования даты
 import { usePetContext } from "./context/formContext";
 
 const TABS = ["Профиль", "Вет. паспорт", "Документы", "Заметки"];
 
 export default function MainScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [eventTitle, setEventTitle] = useState("");
-  const [eventDate, setEventDate] = useState("");
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
   const { selectedPetId, addEvent, formData, setFormData, addPet } = usePetContext();
   const router = useRouter(); 
 
@@ -52,17 +55,6 @@ export default function MainScreen() {
         imageUri: newPath,
       });
     };
-  };
-
-  const handleAddEvent = () => {
-    if (!selectedPetId) {
-      alert("Выберите питомца перед добавлением события");
-      return;
-    }
-
-    addEvent(selectedPetId, { title: eventTitle, date: eventDate });
-    setEventTitle("");
-    setEventDate("");
   };
 
   const handleSubmit = () => {
@@ -120,38 +112,58 @@ export default function MainScreen() {
             ].map(([label, name]) => (
               <View key={name} style={styles.inputGroup}>
                 <Text style={styles.label}>{label}</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData[name as keyof typeof formData]}
-                  onChangeText={(text) =>
-                    setFormData((prev) => ({ ...prev, [name]: text }))
-                  }
-                />
+
+                {name === "birthdate" ? (
+                  <>
+                    <TouchableOpacity
+                      onPress={() => setShowDatePicker(true)}
+                      style={[styles.input, { justifyContent: "center" }]}
+                    >
+                      <Text>
+                        {formData.birthdate
+                          ? format(new Date(formData.birthdate), "yyyy-MM-dd")
+                          : "Выберите дату"}
+                      </Text>
+                    </TouchableOpacity>
+
+                    {showDatePicker && (
+                      <DateTimePicker
+                        value={
+                          formData.birthdate
+                            ? new Date(formData.birthdate)
+                            : new Date()
+                        }
+                        mode="date"
+                        display="default"
+                        onChange={(event, selectedDate) => {
+                          setShowDatePicker(false);
+                          if (selectedDate) {
+                            setFormData((prev) => ({
+                              ...prev,
+                              birthdate: format(selectedDate, "yyyy-MM-dd"),
+                            }));
+                          }
+                        }}
+                      />
+                    )}
+                  </>
+                ) : (
+                  <TextInput
+                    style={styles.input}
+                    value={formData[name as keyof typeof formData]}
+                    onChangeText={(text) =>
+                      setFormData((prev) => ({ ...prev, [name]: text }))
+                    }
+                  />
+                )}
               </View>
             ))}
-          </View>
-          <View style={styles.eventSection}>
-            <Text style={styles.label}>Добавить событие</Text>
-            <TextInput
-              placeholder="Название события"
-              value={eventTitle}
-              onChangeText={setEventTitle}
-              style={styles.input}
-            />
-            <TextInput
-              placeholder="Дата (ГГГГ-ММ-ДД)"
-              value={eventDate}
-              onChangeText={setEventDate}
-              style={styles.input}
-            />
-            <TouchableOpacity onPress={handleAddEvent} style={styles.publishButton}>
-              <Text style={styles.publishButtonText}>Добавить событие</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </View>
     </ScrollView>
   );
+
 }
 
 const screenWidth = Dimensions.get("window").width;

@@ -1,6 +1,6 @@
 import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Dimensions,
@@ -15,13 +15,13 @@ import {
 
 import { Pet, usePetContext } from "../context/formContext";
 
-const TABS = ["Профиль", "Вет. паспорт", "Документы", "Заметки"];
+const TABS = ["Профиль", "Вет. паспорт", "Документы", "События", "Заметки"];
 
 export default function MainScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [eventTitle, setEventTitle] = useState("");
   const [eventDate, setEventDate] = useState("");
-  const { selectedPetId, addEvent, formData, setFormData, addPet, pets, setPets} = usePetContext();
+  const { selectedPetId, setSelectedPetId, addEvent, formData, setFormData, addPet, pets, setPets} = usePetContext();
 
   const router = useRouter(); 
   const {id} = useLocalSearchParams();
@@ -31,7 +31,8 @@ export default function MainScreen() {
   useEffect(() =>{
     if (id && petToEdit){
       setFormData(petToEdit);
-      setImageUri(petToEdit.imageUri || null )
+      setImageUri(petToEdit.imageUri || null );
+      setSelectedPetId(petToEdit.id);
     }
   }, [id]);
 
@@ -65,17 +66,6 @@ export default function MainScreen() {
     };
   };
 
-  const handleAddEvent = () => {
-    if (!selectedPetId) {
-      alert("Выберите питомца перед добавлением события");
-      return;
-    }
-
-    addEvent(selectedPetId, { title: eventTitle, date: eventDate });
-    setEventTitle("");
-    setEventDate("");
-  };
-
   const updatePet = (id: string, updatedData: Partial<Pet>) => {
     setPets((prevPets) =>
       prevPets.map((pet) =>
@@ -85,30 +75,39 @@ export default function MainScreen() {
   };
 
   const handleSubmit = () => {
-  if (id) {
-    // Преобразуем id к строке, если это массив
     const petId = Array.isArray(id) ? id[0] : id;
-    updatePet(petId, formData);
-  } else {
-    addPet();
-  }
 
-  router.replace("/"); // Назад на главную
-};
+    if (petId) {
+      updatePet(petId, {
+        ...formData,
+        imageUri: imageUri ?? formData.imageUri,
+      });
+    } else {
+      addPet();
+    }
+
+    router.replace("/");
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Главная</Text>
-
       <View style={styles.card}>
         {/* Tabs */}
-        <View style={styles.tabsContainer}>
+        {/* <View style={styles.tabsContainer}>
           {TABS.map((tab) => (
             <TouchableOpacity key={tab} style={styles.tabButton}>
               <Text style={styles.tabText}>{tab}</Text>
             </TouchableOpacity>
           ))}
-        </View>
+        </View> */}
+
+        {petToEdit && <Link href={{
+          pathname: '../events/[id]',
+          params: { id: petToEdit.id }
+        }} asChild key={petToEdit.id}>
+          <Text>События</Text>
+        </Link>}
 
         {/* Main content */}
         <View style={styles.contentWrapper}>
@@ -155,24 +154,6 @@ export default function MainScreen() {
                 />
               </View>
             ))}
-          </View>
-          <View style={styles.eventSection}>
-            <Text style={styles.label}>Добавить событие</Text>
-            <TextInput
-              placeholder="Название события"
-              value={eventTitle}
-              onChangeText={setEventTitle}
-              style={styles.input}
-            />
-            <TextInput
-              placeholder="Дата (ГГГГ-ММ-ДД)"
-              value={eventDate}
-              onChangeText={setEventDate}
-              style={styles.input}
-            />
-            <TouchableOpacity onPress={handleAddEvent} style={styles.publishButton}>
-              <Text style={styles.publishButtonText}>Добавить событие</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </View>

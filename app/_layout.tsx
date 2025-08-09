@@ -1,10 +1,13 @@
 import { Stack } from "expo-router";
+import { AuthProvider } from "./(tabs)/context/authContext";
 import { PetProvider } from "./(tabs)/context/formContext";
 
 export default function RootLayout() {
-   return (
-    <PetProvider>
-      <Stack />
-    </PetProvider>
+  return (
+    <AuthProvider>
+      <PetProvider>
+        <Stack />
+      </PetProvider>
+    </AuthProvider>
   );
 }
