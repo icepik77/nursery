@@ -14,7 +14,8 @@ type CalendarItems = {
 
 export default function CalendarScreen() {
   const [items, setItems] = useState<CalendarItems>({});
-  const { pets, selectedPetEvents } = usePetContext();
+  const { pets, allEvents } = usePetContext();
+
 
   useEffect(() => {
     const newItems: CalendarItems = {};
@@ -31,20 +32,25 @@ export default function CalendarScreen() {
       }
     });
 
-    // Добавляем события текущего выбранного питомца
-    selectedPetEvents.forEach((event) => {
-      const date = event.date?.split("T")[0];
-      if (date) {
-        if (!newItems[date]) newItems[date] = [];
-        newItems[date].push({
-          name: `📌 ${event.title}`,
-          height: 50,
-        });
-      }
+    // Добавляем события всех питомцев в календарь 
+    Object.entries(allEvents).forEach(([petId, petEvents]) => {
+      const pet = pets.find(p => p.id === petId);
+      if (!pet) return;
+      
+      petEvents.forEach((event) => {
+        const date = event.date?.split("T")[0];
+        if (date) {
+          if (!newItems[date]) newItems[date] = [];
+          newItems[date].push({
+            name: `📌 ${event.title} (${pet.name})`,
+            height: 50,
+          });
+        }
+      });
     });
 
     setItems(newItems);
-  }, [pets, selectedPetEvents]);
+  }, [pets, allEvents]);
 
   return (
     <SafeAreaView style={styles.container}>

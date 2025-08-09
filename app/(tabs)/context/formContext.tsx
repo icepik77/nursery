@@ -37,11 +37,14 @@ interface PetContextType {
   setSelectedPetId: (id: string | null) => void;
   selectedPet: Pet | null;
   selectedPetEvents: PetEvent[];
+  allEvents: Record<string, PetEvent[]>;
   formData: PetForm;
   setFormData: React.Dispatch<React.SetStateAction<PetForm>>;
   addPet: () => void;
   addEvent: (petId: string, event: PetEvent) => void;
   removePet: (id: string) => void;
+  updateEvent: (petId: string, index: number, updatedEvent: PetEvent) => void;
+  deleteEvent: (petId: string, index: number) => void;
 }
 
 const PetContext = createContext<PetContextType | null>(null);
@@ -125,12 +128,14 @@ export const PetProvider = ({ children }: PetProviderProps) => {
 
   const addPet = () => {
     if (formData.name && formData.birthdate) {
-      console.log("formData.imageUri" + formData.imageUri);
+      const id = Date.now().toString();
+      console.log("id: " + id);
       const newPet: Pet = {
-        id: Date.now().toString(),
+        id: id,
         ...formData,
       };
       setPets((prev) => [...prev, newPet]);
+      setSelectedPetId(newPet.id);
       setFormData({
         name: "",
         gender: "",
@@ -167,6 +172,23 @@ export const PetProvider = ({ children }: PetProviderProps) => {
     }
   };
 
+  const updateEvent = (petId: string, index: number, updatedEvent: PetEvent) => {
+    setEvents((prev) => {
+      const updatedEvents = [...(prev[petId] || [])];
+      updatedEvents[index] = updatedEvent;
+      return { ...prev, [petId]: updatedEvents };
+    });
+  };
+
+  const deleteEvent = (petId: string, index: number) => {
+    setEvents((prev) => {
+      const updatedEvents = [...(prev[petId] || [])];
+      updatedEvents.splice(index, 1);
+      return { ...prev, [petId]: updatedEvents };
+    });
+  };
+
+
   const selectedPet = pets.find((pet) => pet.id === selectedPetId) || null;
   const selectedPetEvents = events[selectedPetId ?? ""] || [];
 
@@ -179,11 +201,14 @@ export const PetProvider = ({ children }: PetProviderProps) => {
         setSelectedPetId,
         selectedPet,
         selectedPetEvents,
+        allEvents: events,
         formData,
         setFormData,
         addPet,
         addEvent,
-        removePet
+        removePet,
+        updateEvent,
+        deleteEvent, 
       }}
     >
       {children}

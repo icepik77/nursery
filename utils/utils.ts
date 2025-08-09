@@ -1,6 +1,8 @@
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { Alert, Platform } from 'react-native';
+import { auth } from "../firebaseConfig";
 
 export async function registerForPushNotificationsAsync() {
   if (Device.isDevice) {
@@ -48,6 +50,15 @@ export const requestNotificationPermission = async () => {
 
   return true;
 };
+
+export const signUp = (email: string, password: string) =>
+  createUserWithEmailAndPassword(auth, email, password);
+
+export const signIn = (email: string, password: string) =>
+  signInWithEmailAndPassword(auth, email, password);
+
+export const logOut = () => signOut(auth);
+
 
 // Notifications.setNotificationHandler({
   //   handleNotification: async () => ({
