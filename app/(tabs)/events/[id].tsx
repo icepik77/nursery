@@ -5,6 +5,7 @@ import { Alert, FlatList, Text, TextInput, TouchableOpacity, View } from "react-
 import { usePetContext } from "../context/formContext";
 
 
+
 export default function EventListScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [title, setTitle] = useState("");
@@ -57,7 +58,7 @@ export default function EventListScreen() {
   };
 
   return (
-    <View style={{ padding: 16 }}>
+    <View style={{ padding: 16, marginTop: 30}}>
       <Text style={{ fontSize: 20, fontWeight: "bold" }}>
         События: {pet.name}
       </Text>

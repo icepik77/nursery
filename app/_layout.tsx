@@ -6,7 +6,7 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <PetProvider>
-        <Stack />
+        <Stack screenOptions={{ headerShown: false }}/>
       </PetProvider>
     </AuthProvider>
   );
