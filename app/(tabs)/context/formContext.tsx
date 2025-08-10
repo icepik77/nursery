@@ -1,7 +1,11 @@
+import { db } from "@/firebaseConfig";
+import { getAuth, onAuthStateChanged, User } from "firebase/auth";
+import { collection, getDocs } from "firebase/firestore";
 import React, {
   createContext,
   ReactNode,
   useContext,
+  useEffect,
   useState,
 } from "react";
 
@@ -9,17 +13,18 @@ import React, {
 // Тип для одного питомца
 export type Pet = {
   id: string;
-  name: string;
-  gender: string;
-  birthdate: string;
-  chip: string;
-  breed: string;
-  weight: string;
-  height: string;
-  color: string;
-  note: string;
+  name?: string;
+  gender?: string;
+  birthdate?: string;
+  chip?: string;
+  breed?: string;
+  weight?: string;
+  height?: string;
+  color?: string;
+  note?: string;
   imageUri?: string;
 };
+
 
 // Тип формы без id
 export type PetForm = Omit<Pet, "id">;
@@ -52,6 +57,8 @@ const PetContext = createContext<PetContextType | null>(null);
 interface PetProviderProps {
   children: ReactNode;
 }
+
+const auth = getAuth();
 
 export const PetProvider = ({ children }: PetProviderProps) => {
 
@@ -120,6 +127,31 @@ export const PetProvider = ({ children }: PetProviderProps) => {
   
   const [pets, setPets] = useState<Pet[]>(mockData);
   const [selectedPetId, setSelectedPetId] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser); // firebaseUser — это User или null
+    });
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setPets([]);
+      setEvents({});
+      return;
+    }
+
+    const loadPets = async () => {
+      const petsCollection = collection(db, "users", user.uid, "pets");
+      const petsSnapshot = await getDocs(petsCollection);
+      const loadedPets = petsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setPets(loadedPets);
+    };
+
+    loadPets();
+  }, [user]);
 
   const { id, ...firstPetForm } = mockData[0];
   const [formData, setFormData] = useState<PetForm>(firstPetForm);

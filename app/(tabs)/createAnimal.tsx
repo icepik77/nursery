@@ -18,7 +18,7 @@ import {
 import { format } from "date-fns"; // 💡 Для форматирования даты
 import { usePetContext } from "./context/formContext";
 
-const TABS = ["Профиль", "Вет. паспорт", "Документы", "Заметки"];
+const TABS = ["Профиль", "Вет. паспорт", "Документы", "Заметки", "Календарь"];
 
 export default function MainScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -70,7 +70,17 @@ export default function MainScreen() {
         {/* Tabs */}
         <View style={styles.tabsContainer}>
           {TABS.map((tab) => (
-            <TouchableOpacity key={tab} style={styles.tabButton}>
+            <TouchableOpacity
+              key={tab}
+              style={styles.tabButton}
+              onPress={() => {
+                if (tab === "Календарь") {
+                  router.push("/calendar");
+                } else {
+                  // Другие действия по табам, если нужно
+                }
+              }}
+            >
               <Text style={styles.tabText}>{tab}</Text>
             </TouchableOpacity>
           ))}

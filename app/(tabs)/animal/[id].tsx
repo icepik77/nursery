@@ -1,6 +1,6 @@
 import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
-import { Link, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Dimensions,
@@ -15,7 +15,10 @@ import {
 
 import { Pet, usePetContext } from "../context/formContext";
 
-const TABS = ["Профиль", "Вет. паспорт", "Документы", "События", "Заметки"];
+// const TABS = ["Профиль", "Вет. паспорт", "Документы", "События", "Заметки", "Календарь"];
+const TABS = ["Профиль","События", "Календарь"];
+
+
 
 export default function MainScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -102,12 +105,28 @@ export default function MainScreen() {
           ))}
         </View> */}
 
-        {petToEdit && <Link href={{
-          pathname: '../events/[id]',
-          params: { id: petToEdit.id }
-        }} asChild key={petToEdit.id}>
-          <Text>События</Text>
-        </Link>}
+        <View style={styles.tabsContainer}>
+          {TABS.map((tab) => (
+            <TouchableOpacity
+              key={tab}
+              style={styles.tabButton}
+              onPress={() => {
+                if (tab === "Календарь") {
+                  router.push("/calendar");
+                } else {
+                  if (petToEdit && tab ==="События"){
+                    router.push({
+                      pathname: "../events/[id]",
+                      params: { id: petToEdit.id }
+                    });
+                  }
+                }
+              }}
+            >
+              <Text style={styles.tabText}>{tab}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
         {/* Main content */}
         <View style={styles.contentWrapper}>
