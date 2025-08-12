@@ -43,7 +43,7 @@ export default function HomeScreen() {
             >
               <PetCard
                 id={pet.id}
-                name={pet.name}
+                name={pet.name ?? "Без имени"}
                 breed={pet.breed}
                 gender={pet.gender}
                 age={"1 год"}
@@ -60,7 +60,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { alignItems: "center", padding: 16 },
+  container: { alignItems: "center", padding: 16, flex: 1 },
   header: { width: "100%", alignItems: "center", marginBottom: 24 },
   headerText: { fontSize: 28, fontWeight: "bold", marginBottom: 12, marginTop:14 },
   addButton: {

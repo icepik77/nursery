@@ -4,8 +4,8 @@ import React, { useState } from "react";
 import { Button, Text, TextInput, View } from "react-native";
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("icepik77@mail.ru");
+  const [password, setPassword] = useState("Dark1271");
   const [error, setError] = useState("");
 
   const handleLogin = async () => {
