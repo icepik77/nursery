@@ -1,9 +1,10 @@
-import HomeScreen from "./(tabs)"
+import HomeScreen from "./(tabs)";
+import { useAuth } from "./(tabs)/context/authContext";
+import LoginScreen from "./(tabs)/login";
 
 export default function Index() {
-  // const { user } = useAuth();
-  // return user ? <HomeScreen /> : <LoginScreen />;
-  return <HomeScreen/>
+  const { user } = useAuth();
+  return user ? <HomeScreen /> : <LoginScreen />;
 }
 
 // const styles = StyleSheet.create({

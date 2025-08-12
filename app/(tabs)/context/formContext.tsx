@@ -1,6 +1,6 @@
 import { db } from "@/firebaseConfig";
 import { getAuth, onAuthStateChanged, User } from "firebase/auth";
-import { collection, getDocs } from "firebase/firestore";
+import { addDoc, collection, getDocs } from "firebase/firestore";
 import React, {
   createContext,
   ReactNode,
@@ -143,13 +143,6 @@ export const PetProvider = ({ children }: PetProviderProps) => {
       return;
     }
 
-    const loadPets = async () => {
-      const petsCollection = collection(db, "users", user.uid, "pets");
-      const petsSnapshot = await getDocs(petsCollection);
-      const loadedPets = petsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setPets(loadedPets);
-    };
-
     loadPets();
   }, [user]);
 
@@ -158,37 +151,81 @@ export const PetProvider = ({ children }: PetProviderProps) => {
 
   const [events, setEvents] = useState<Record<string, PetEvent[]>>({});
 
-  const addPet = () => {
+  const loadPets = async () => {
+    if (!user) {
+      setPets([]);
+      setEvents({});
+      return;
+    }
+
+    const petsCollection = collection(db, "users", user.uid, "pets");
+    const petsSnapshot = await getDocs(petsCollection);
+    const loadedPets = petsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setPets(loadedPets);
+  };
+
+  const addPet = async () => {
+    if (!user) {
+      console.error("Пользователь не авторизован");
+      return;
+    }
+
     if (formData.name && formData.birthdate) {
-      const id = Date.now().toString();
-      console.log("id: " + id);
-      const newPet: Pet = {
-        id: id,
-        ...formData,
-      };
-      setPets((prev) => [...prev, newPet]);
-      setSelectedPetId(newPet.id);
-      setFormData({
-        name: "",
-        gender: "",
-        birthdate: "",
-        chip: "",
-        breed: "",
-        weight: "",
-        height: "",
-        color: "",
-        note: "",
-        imageUri: "",
-      });
+      try {
+        // Создаём документ в подколлекции pets
+        const docRef = await addDoc(
+          collection(db, "users", user.uid, "pets"),
+          formData
+        );
+
+        console.log("Питомец сохранён в Firestore с ID:", docRef.id);
+
+        // Очищаем форму
+        setFormData({
+          name: "",
+          gender: "",
+          birthdate: "",
+          chip: "",
+          breed: "",
+          weight: "",
+          height: "",
+          color: "",
+          note: "",
+          imageUri: "",
+        });
+
+        // Опционально: сразу подгрузить нового питомца
+        // или оставить на автообновлении через loadPets
+        loadPets();
+      } catch (error) {
+        console.error("Ошибка при сохранении питомца:", error);
+      }
     }
   };
 
-  const addEvent = (petId: string, event: PetEvent) => {
+  const addEvent = async (petId: string, event: PetEvent) => {
+    const user = auth.currentUser;
+    if (!user) return; // Если пользователь не авторизован
+
     if (event.title && event.date) {
-      setEvents((prev) => ({
-        ...prev,
-        [petId]: [...(prev[petId] || []), event],
-      }));
+      try {
+        // 1️⃣ Сохраняем в Firestore
+        await addDoc(collection(db, "users", user.uid, "events"), {
+          petId,
+          title: event.title,
+          date: event.date,
+          createdAt: new Date()
+        });
+
+        // 2️⃣ Обновляем локальный state
+        setEvents((prev) => ({
+          ...prev,
+          [petId]: [...(prev[petId] || []), event],
+        }));
+
+      } catch (e) {
+        console.error("Ошибка при добавлении события:", e);
+      }
     }
   };
 
