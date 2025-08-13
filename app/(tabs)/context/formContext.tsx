@@ -50,6 +50,7 @@ interface PetContextType {
   removePet: (id: string) => void;
   updateEvent: (petId: string, index: number, updatedEvent: PetEvent) => void;
   deleteEvent: (petId: string, index: number) => void;
+  user: User | null;
 }
 
 const PetContext = createContext<PetContextType | null>(null);
@@ -278,6 +279,7 @@ export const PetProvider = ({ children }: PetProviderProps) => {
         removePet,
         updateEvent,
         deleteEvent, 
+        user,
       }}
     >
       {children}

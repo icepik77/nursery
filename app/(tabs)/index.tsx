@@ -18,7 +18,7 @@ export default function HomeScreen() {
           <ControlsBar />
           <TouchableOpacity 
             style={styles.addButton}
-            onPress={() => router.push("/createAnimal")}
+            onPress={() => router.push("/animal/createAnimal")}
           >
             <Text style={styles.addButtonText}>Добавить питомца</Text>
           </TouchableOpacity>
@@ -71,5 +71,5 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   addButtonText: { color: "white", fontSize: 18, fontWeight: "600" },
-  cardsContainer: { width: "100%", alignItems: "center", gap: 16 },
+  cardsContainer: { width: "100%", alignItems: "center", gap: 2 },
 });
