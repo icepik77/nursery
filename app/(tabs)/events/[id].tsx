@@ -1,24 +1,28 @@
 // app/events/[petId].tsx
+import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Alert, FlatList, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  FlatList,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { usePetContext } from "../context/formContext";
-
-
 
 export default function EventListScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const {
-    addEvent,
-    updateEvent,
-    deleteEvent,
-    pets,
-    allEvents,
-  } = usePetContext();
+  const { addEvent, updateEvent, deleteEvent, pets, allEvents } = usePetContext();
 
   const pet = pets.find((p) => p.id === id);
   const selectedPetEvents = allEvents[id ?? ""] || [];
@@ -57,72 +61,110 @@ export default function EventListScreen() {
     ]);
   };
 
+  const onDateChange = (_event: any, selectedDate?: Date) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setDate(selectedDate.toISOString().split("T")[0]);
+    }
+  };
+
   return (
-    <View style={{ padding: 16, marginTop: 30}}>
-      <Text style={{ fontSize: 20, fontWeight: "bold" }}>
-        События: {pet.name}
-      </Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>События: {pet.name}</Text>
 
       <FlatList
         data={selectedPetEvents}
         keyExtractor={(_, index) => index.toString()}
         renderItem={({ item, index }) => (
-          <View
-            style={{
-              paddingVertical: 8,
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Text>{item.title} - {item.date}</Text>
-            <View style={{ flexDirection: "row", gap: 8 }}>
+          <View style={styles.card}>
+            <View>
+              <Text style={styles.cardTitle}>{item.title}</Text>
+              <Text style={styles.cardDate}>{item.date}</Text>
+            </View>
+            <View style={styles.actions}>
               <TouchableOpacity onPress={() => startEdit(index)}>
-                <Text style={{ color: "blue" }}>Изменить</Text>
+                <Ionicons name="pencil" size={20} color="#4A90E2" />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => confirmDelete(index)}>
-                <Text style={{ color: "red" }}>Удалить</Text>
+                <Ionicons name="trash" size={20} color="red" />
               </TouchableOpacity>
             </View>
           </View>
         )}
       />
 
-      <TextInput
-        placeholder="Название"
-        value={title}
-        onChangeText={setTitle}
-        style={{
-          marginTop: 20,
-          backgroundColor: "#eee",
-          padding: 10,
-          borderRadius: 8,
-        }}
-      />
-      <TextInput
-        placeholder="Дата (ГГГГ-ММ-ДД)"
-        value={date}
-        onChangeText={setDate}
-        style={{
-          marginTop: 10,
-          backgroundColor: "#eee",
-          padding: 10,
-          borderRadius: 8,
-        }}
-      />
-      <TouchableOpacity
-        onPress={handleSave}
-        style={{
-          backgroundColor: "#041029",
-          padding: 12,
-          borderRadius: 8,
-          marginTop: 10,
-        }}
-      >
-        <Text style={{ color: "#fff", textAlign: "center" }}>
-          {editingIndex !== null ? "Сохранить изменения" : "Добавить событие"}
-        </Text>
-      </TouchableOpacity>
+      {/* Форма */}
+      <View style={styles.form}>
+        <TextInput
+          placeholder="Название события"
+          value={title}
+          onChangeText={setTitle}
+          style={styles.input}
+        />
+        <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
+          <Ionicons name="calendar" size={18} color="#4A90E2" />
+          <Text style={styles.dateButtonText}>
+            {date ? date : "Выбрать дату"}
+          </Text>
+        </TouchableOpacity>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={date ? new Date(date) : new Date()}
+            mode="date"
+            display={Platform.OS === "ios" ? "spinner" : "default"}
+            onChange={onDateChange}
+          />
+        )}
+
+        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+          <Text style={styles.saveButtonText}>
+            {editingIndex !== null ? "Сохранить изменения" : "Добавить событие"}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#fff", padding: 16, marginTop: 30 },
+  title: { fontSize: 22, fontWeight: "bold", marginBottom: 15 },
+  card: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    backgroundColor: "#f9f9f9",
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  cardTitle: { fontSize: 16, fontWeight: "bold" },
+  cardDate: { color: "#555" },
+  actions: { flexDirection: "row", alignItems: "center", gap: 12 },
+  form: { marginTop: 20 },
+  input: {
+    backgroundColor: "#f1f1f1",
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  dateButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f1f1f1",
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  dateButtonText: { marginLeft: 8, color: "#4A90E2" },
+  saveButton: {
+    backgroundColor: "#041029",
+    padding: 12,
+    borderRadius: 8,
+  },
+  saveButtonText: { color: "#fff", textAlign: "center", fontWeight: "bold" },
+});

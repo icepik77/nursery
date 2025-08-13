@@ -16,7 +16,7 @@ import {
 } from "react-native";
 
 import { format } from "date-fns"; // 💡 Для форматирования даты
-import { usePetContext } from "./context/formContext";
+import { usePetContext } from "../context/formContext";
 
 const TABS = ["Профиль", "Вет. паспорт", "Документы", "Заметки", "Календарь"];
 
@@ -77,7 +77,9 @@ export default function MainScreen() {
                 if (tab === "Календарь") {
                   router.push("/calendar");
                 } else {
-                  // Другие действия по табам, если нужно
+                    if (tab === "Документы") {
+                    router.push(`/animal/${selectedPetId}/documents`);
+                  }
                 }
               }}
             >
