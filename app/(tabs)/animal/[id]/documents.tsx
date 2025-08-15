@@ -1,96 +1,47 @@
+import { MaterialIcons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
-import * as Linking from 'expo-linking';
 import * as Sharing from 'expo-sharing';
 import React, { useEffect, useState } from 'react';
-import { Button, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-
-import { db } from '@/firebaseConfig';
-import { addDoc, collection, DocumentData, getDocs } from "firebase/firestore";
-import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { usePetContext } from '../../context/formContext';
 
-const storage = getStorage();
-
+type MockFile = {
+  name: string;
+  uri: string;
+  createdAt: Date;
+};
 
 export default function PDFUploader() {
-  const [files, setFiles] = useState<DocumentData[]>([]);
-  const {user, selectedPetId} = usePetContext(); 
+  const [files, setFiles] = useState<MockFile[]>([]);
+  const { selectedPetId } = usePetContext();
 
   useEffect(() => {
-  if (!user || !selectedPetId) return;
-
-  const loadDocuments = async () => {
-    const docsCollection = collection(db, "users", user.uid, "pets", selectedPetId, "documents");
-    const snapshot = await getDocs(docsCollection);
-
-    const docsList = snapshot.docs.map(doc => doc.data());
-    setFiles(docsList);
-  };
-
-  loadDocuments();
-}, [user, selectedPetId]);
+    if (!selectedPetId) setFiles([]);
+  }, [selectedPetId]);
 
   const pickPDF = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: 'application/pdf',
-      });
-
-      if (result.canceled || !result.assets?.length || !user) {
-        console.warn("📄 Файл не выбран или пользователь не авторизован");
-        return;
-      }
-
-      const file = result.assets[0];
-      const { uri, name } = file;
-      console.log("📂 Выбран файл:", name, uri);
-
-      let blob: Blob;
-
-      try {
-        if (uri.startsWith("file://")) {
-          // iOS
-          const response = await fetch(uri);
-          blob = await response.blob();
-        } else {
-          // Android content://
-          const fileInfo = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
-          blob = new Blob([Uint8Array.from(atob(fileInfo), c => c.charCodeAt(0))], { type: 'application/pdf' });
-        }
-      } catch (err) {
-        console.error("❌ Ошибка при конвертации файла в Blob:", err);
-        return;
-      }
-
-      const storageRef = ref(storage, `users/${user.uid}/pets/${selectedPetId}/documents/${name}`);
-
-      await uploadBytes(storageRef, blob);
-      const downloadUrl = await getDownloadURL(storageRef);
-
-      if (!user?.uid || !selectedPetId) {
-        console.warn("⚠ User ID или выбранный питомец отсутствует");
-        return;
-      }
-
-      try {
-        const docRef = await addDoc(
-          collection(db, "users", user.uid, "pets", selectedPetId, "documents"),
-          {
-            name,
-            url: downloadUrl,
-            createdAt: new Date(),
-          }
-        );
-        console.log("✅ Документ добавлен в Firestore, ID:", docRef.id);
-      } catch (error) {
-        console.error("❌ Ошибка при добавлении документа в Firestore:", error);
-      }
-
-      setFiles(prev => [...prev, { name, url: downloadUrl }]);
-    } catch (error) {
-      console.error("Ошибка Firebase Storage:", JSON.stringify(error, null, 2));
+    if (!selectedPetId) {
+      alert("Сначала выберите питомца");
+      return;
     }
+
+    const result = await DocumentPicker.getDocumentAsync({ type: 'application/pdf' });
+
+    if (result.canceled) {
+      console.warn("Файл не выбран");
+      return;
+    }
+
+    const file = result.assets[0];
+    const uri = file.uri;
+    const name = file.name || uri.split('/').pop() || 'unknown.pdf';
+
+    if (!uri) {
+      console.warn("Не удалось получить uri файла");
+      return;
+    }
+
+    setFiles(prev => [...prev, { name, uri, createdAt: new Date() }]);
   };
 
   const sharePDF = async (uri: string) => {
@@ -107,26 +58,92 @@ export default function PDFUploader() {
   };
 
   return (
-    <View style={{ padding: 20 }}>
-      <Button title="Добавить PDF" onPress={pickPDF} />
-
-      <ScrollView style={{ marginTop: 20 }}>
-        {files.length === 0 && <Text>Файлы не выбраны</Text>}
-
-        {files.length === 0 && <Text>Файлы не выбраны</Text>}
+    <View style={styles.container}>
+      <ScrollView style={{ flex: 1 }}>
+        {files.length === 0 && <Text style={styles.noFilesText}>Файлы не выбраны</Text>}
 
         {files.map((file, index) => (
-          <View key={index} style={{ marginBottom: 15 }}>
-            <Text>{file.name}</Text>
-            <TouchableOpacity onPress={() => Linking.openURL(file.url)}>
-              <Text style={{ color: 'blue', marginTop: 5 }}>Открыть PDF</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => sharePDF(file.url)}>
-              <Text style={{ color: 'green', marginTop: 5 }}>Поделиться</Text>
+          <View key={index} style={styles.card}>
+            <MaterialIcons name="picture-as-pdf" size={32} color="#e53935" style={{ marginRight: 10 }} />
+            <View style={styles.cardContent}>
+              <Text style={styles.fileName}>{file.name}</Text>
+              <Text style={styles.date}>
+                {file.createdAt.toLocaleDateString()} {file.createdAt.toLocaleTimeString()}
+              </Text>
+            </View>
+            <TouchableOpacity onPress={() => sharePDF(file.uri)} style={styles.actionButton}>
+              <MaterialIcons name="share" size={24} color="#00796b" />
             </TouchableOpacity>
           </View>
         ))}
       </ScrollView>
+
+      {/* Floating Action Button */}
+      <TouchableOpacity style={styles.fab} onPress={pickPDF} activeOpacity={0.7}>
+        <MaterialIcons name="picture-as-pdf" size={28} color="#fff" />
+      </TouchableOpacity>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f4f6f8',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  noFilesText: {
+    textAlign: 'center',
+    marginTop: 50,
+    color: '#999',
+    fontSize: 16,
+  },
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 15,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
+  cardContent: {
+    flex: 1,
+  },
+  fileName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  date: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 3,
+  },
+  actionButton: {
+    padding: 8,
+    backgroundColor: '#e0f7fa',
+    borderRadius: 8,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 30,
+    right: 30,
+    backgroundColor: '#00796b',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 5,
+  },
+});

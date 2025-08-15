@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import { usePetContext } from "../context/formContext";
 
-const TABS = ["Профиль", "Вет. паспорт", "Документы", "Заметки", "Календарь"];
+const TABS = ["Медицина", "Документы", "Заметки", "Напоминания"];
 
 export default function MainScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -62,7 +62,7 @@ export default function MainScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Главная</Text>
+      <Text style={styles.title}>Создать профиль</Text>
 
       <View style={styles.card}>
         {/* Tabs */}
@@ -189,6 +189,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 24,
     textAlign: "center",
+    marginTop:10,
   },
   card: {
     backgroundColor: "#fff",
@@ -202,11 +203,12 @@ const styles = StyleSheet.create({
   tabsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between",
+    gap: 8, // расстояние между табами
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
     paddingBottom: 12,
     marginBottom: 16,
+    justifyContent: 'center'
   },
   tabButton: {
     paddingBottom: 6,
@@ -238,7 +240,7 @@ const styles = StyleSheet.create({
     color: "#6B7280",
   },
   publishButton: {
-    backgroundColor: "#041029",
+    backgroundColor: "#00796b",
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
