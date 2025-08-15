@@ -35,11 +35,3 @@ allprojects {
 
 apply plugin: "expo-root-project"
 apply plugin: "com.facebook.react.rootproject"
-
-compileJava.options.encoding = 'UTF-8' // устанавливает кодировку для компилируемого кода
-javadoc.options.encoding = 'UTF-8' // устанавливает кодировку для генерируемой документации
-compileTestJava.options.encoding = 'UTF-8'
-
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
-}
