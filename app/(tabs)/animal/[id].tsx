@@ -16,7 +16,7 @@ import {
 import { Pet, usePetContext } from "../context/formContext";
 
 // const TABS = ["Профиль", "Вет. паспорт", "Документы", "События", "Заметки", "Календарь"];
-const TABS = ["Профиль", "Вет. паспорт", "Документы", "Заметки", "Календарь"];
+const TABS = ["Профиль", "Медицина", "Документы", "Заметки", "Напоминания"];
 
 export default function MainScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -92,7 +92,7 @@ export default function MainScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Главная</Text>
+      <Text style={styles.title}>Профиль питомца</Text>
       <View style={styles.card}>
         {/* Tabs */}
         {/* <View style={styles.tabsContainer}>
@@ -120,6 +120,9 @@ export default function MainScreen() {
                 }
                 if (tab === "Документы") {
                     router.push(`/animal/${selectedPetId}/documents`);
+                }
+                if (tab === "Медицина") {
+                    router.push(`/animal/${selectedPetId}/medical`);
                 }
               }}
             >
@@ -206,14 +209,16 @@ const styles = StyleSheet.create({
   tabsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between",
+    gap: 8, // расстояние между табами
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
     paddingBottom: 12,
     marginBottom: 16,
+    justifyContent: 'center'
   },
   tabButton: {
     paddingBottom: 6,
+    marginRight: 2,
     borderBottomWidth: 2,
     borderBottomColor: "transparent",
   },
@@ -242,7 +247,7 @@ const styles = StyleSheet.create({
     color: "#6B7280",
   },
   publishButton: {
-    backgroundColor: "#041029",
+    backgroundColor: "#00796b",
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,

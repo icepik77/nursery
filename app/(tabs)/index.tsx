@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   header: { width: "100%", alignItems: "center", marginBottom: 24 },
   headerText: { fontSize: 28, fontWeight: "bold", marginBottom: 12, marginTop:14 },
   addButton: {
-    backgroundColor: "#041029",
+    backgroundColor: "#00796b",
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,

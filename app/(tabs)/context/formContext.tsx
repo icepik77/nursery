@@ -1,14 +1,4 @@
-import { db } from "@/firebaseConfig";
-import { getAuth, onAuthStateChanged, User } from "firebase/auth";
-import { addDoc, collection, getDocs } from "firebase/firestore";
-import React, {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-
+import React, { createContext, ReactNode, useContext, useState } from "react";
 
 // Тип для одного питомца
 export type Pet = {
@@ -24,7 +14,6 @@ export type Pet = {
   note?: string;
   imageUri?: string;
 };
-
 
 // Тип формы без id
 export type PetForm = Omit<Pet, "id">;
@@ -50,7 +39,7 @@ interface PetContextType {
   removePet: (id: string) => void;
   updateEvent: (petId: string, index: number, updatedEvent: PetEvent) => void;
   deleteEvent: (petId: string, index: number) => void;
-  user: User | null;
+  user: { id: string; name: string } | null;
 }
 
 const PetContext = createContext<PetContextType | null>(null);
@@ -59,175 +48,78 @@ interface PetProviderProps {
   children: ReactNode;
 }
 
-const auth = getAuth();
+// Моковый пользователь
+const mockUser = { id: "u1", name: "Тестовый пользователь" };
+
+// Моковые питомцы
+const mockPets: Pet[] = [
+  {
+    id: "1",
+    name: "Барсик",
+    gender: "мужской",
+    birthdate: "2019-05-12",
+    chip: "001234567",
+    breed: "сибирская",
+    weight: "6",
+    height: "28",
+    color: "серый",
+    note: "любит лазать по шкафам",
+  },
+  {
+    id: "2",
+    name: "Мурка",
+    gender: "женский",
+    birthdate: "2021-08-03",
+    chip: "009876543",
+    breed: "британская короткошерстная",
+    weight: "4",
+    height: "25",
+    color: "голубой",
+    note: "очень ласковая",
+  },
+];
 
 export const PetProvider = ({ children }: PetProviderProps) => {
+  const [pets, setPets] = useState<Pet[]>(mockPets);
+  const [selectedPetId, setSelectedPetId] = useState<string | null>(mockPets[0]?.id || null);
+  const [user] = useState(mockUser);
 
-  const mockData: Pet[] = [
-    {
-      id: "1",
-      name: "Барсик",
-      gender: "мужской",
-      birthdate: "2019-05-12",
-      chip: "001234567",
-      breed: "сибирская",
-      weight: "6",
-      height: "28",
-      color: "серый",
-      note: "любит лазать по шкафам",
-    },
-    {
-      id: "2",
-      name: "Мурка",
-      gender: "женский",
-      birthdate: "2021-08-03",
-      chip: "009876543",
-      breed: "британская короткошерстная",
-      weight: "4",
-      height: "25",
-      color: "голубой",
-      note: "очень ласковая",
-    },
-    {
-      id: "3",
-      name: "Рекс",
-      gender: "мужской",
-      birthdate: "2020-12-01",
-      chip: "004567891",
-      breed: "овчарка",
-      weight: "30",
-      height: "60",
-      color: "черно-подпалый",
-      note: "служебная собака",
-    },
-    {
-      id: "4",
-      name: "Белка",
-      gender: "женский",
-      birthdate: "2018-03-21",
-      chip: "003456789",
-      breed: "лайка",
-      weight: "18",
-      height: "45",
-      color: "белая",
-      note: "охотничья собака",
-    },
-    {
-      id: "5",
-      name: "Том",
-      gender: "мужской",
-      birthdate: "2022-07-15",
-      chip: "007654321",
-      breed: "мейн-кун",
-      weight: "7",
-      height: "35",
-      color: "рыжий",
-      note: "любит играть с мячиком",
-    },
-  ];
-  
-  const [pets, setPets] = useState<Pet[]>(mockData);
-  const [selectedPetId, setSelectedPetId] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser); // firebaseUser — это User или null
-    });
-    return unsubscribe;
-  }, []);
-
-  useEffect(() => {
-    if (!user) {
-      setPets([]);
-      setEvents({});
-      return;
-    }
-
-    loadPets();
-  }, [user]);
-
-  const { id, ...firstPetForm } = mockData[0];
+  const { id, ...firstPetForm } = mockPets[0] || {};
   const [formData, setFormData] = useState<PetForm>(firstPetForm);
 
   const [events, setEvents] = useState<Record<string, PetEvent[]>>({});
 
-  const loadPets = async () => {
-    if (!user) {
-      setPets([]);
-      setEvents({});
-      return;
-    }
+  const addPet = () => {
+    if (!formData.name) return;
 
-    const petsCollection = collection(db, "users", user.uid, "pets");
-    const petsSnapshot = await getDocs(petsCollection);
-    const loadedPets = petsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    setPets(loadedPets);
+    const newPet: Pet = {
+      id: (pets.length + 1).toString(),
+      ...formData,
+    };
+
+    setPets((prev) => [...prev, newPet]);
+
+    setFormData({
+      name: "",
+      gender: "",
+      birthdate: "",
+      chip: "",
+      breed: "",
+      weight: "",
+      height: "",
+      color: "",
+      note: "",
+      imageUri: "",
+    });
   };
 
-  const addPet = async () => {
-    if (!user) {
-      console.error("Пользователь не авторизован");
-      return;
-    }
+  const addEvent = (petId: string, event: PetEvent) => {
+    if (!event.title || !event.date) return;
 
-    if (formData.name && formData.birthdate) {
-      try {
-        // Создаём документ в подколлекции pets
-        const docRef = await addDoc(
-          collection(db, "users", user.uid, "pets"),
-          formData
-        );
-
-        console.log("Питомец сохранён в Firestore с ID:", docRef.id);
-
-        // Очищаем форму
-        setFormData({
-          name: "",
-          gender: "",
-          birthdate: "",
-          chip: "",
-          breed: "",
-          weight: "",
-          height: "",
-          color: "",
-          note: "",
-          imageUri: "",
-        });
-
-        // Опционально: сразу подгрузить нового питомца
-        // или оставить на автообновлении через loadPets
-        loadPets();
-      } catch (error) {
-        console.error("Ошибка при сохранении питомца:", error);
-      }
-    }
-  };
-
-  const addEvent = async (petId: string, event: PetEvent) => {
-    const user = auth.currentUser;
-    if (!user) return; // Если пользователь не авторизован
-
-    if (event.title && event.date) {
-      try {
-        // 1️⃣ Сохраняем в Firestore
-        await addDoc(collection(db, "users", user.uid, "events"), {
-          petId,
-          title: event.title,
-          date: event.date,
-          createdAt: new Date()
-        });
-
-        // 2️⃣ Обновляем локальный state
-        setEvents((prev) => ({
-          ...prev,
-          [petId]: [...(prev[petId] || []), event],
-        }));
-
-      } catch (e) {
-        console.error("Ошибка при добавлении события:", e);
-      }
-    }
+    setEvents((prev) => ({
+      ...prev,
+      [petId]: [...(prev[petId] || []), event],
+    }));
   };
 
   const removePet = (id: string) => {
@@ -237,9 +129,7 @@ export const PetProvider = ({ children }: PetProviderProps) => {
       delete updated[id];
       return updated;
     });
-    if (selectedPetId === id) {
-      setSelectedPetId(null);
-    }
+    if (selectedPetId === id) setSelectedPetId(null);
   };
 
   const updateEvent = (petId: string, index: number, updatedEvent: PetEvent) => {
@@ -257,7 +147,6 @@ export const PetProvider = ({ children }: PetProviderProps) => {
       return { ...prev, [petId]: updatedEvents };
     });
   };
-
 
   const selectedPet = pets.find((pet) => pet.id === selectedPetId) || null;
   const selectedPetEvents = events[selectedPetId ?? ""] || [];
@@ -278,7 +167,7 @@ export const PetProvider = ({ children }: PetProviderProps) => {
         addEvent,
         removePet,
         updateEvent,
-        deleteEvent, 
+        deleteEvent,
         user,
       }}
     >
@@ -289,8 +178,6 @@ export const PetProvider = ({ children }: PetProviderProps) => {
 
 export const usePetContext = (): PetContextType => {
   const context = useContext(PetContext);
-  if (!context) {
-    throw new Error("usePetContext must be used within a PetProvider");
-  }
+  if (!context) throw new Error("usePetContext must be used within a PetProvider");
   return context;
 };
