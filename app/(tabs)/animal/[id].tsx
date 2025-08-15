@@ -16,9 +16,7 @@ import {
 import { Pet, usePetContext } from "../context/formContext";
 
 // const TABS = ["Профиль", "Вет. паспорт", "Документы", "События", "Заметки", "Календарь"];
-const TABS = ["Профиль","События", "Календарь"];
-
-
+const TABS = ["Профиль", "Вет. паспорт", "Документы", "Заметки", "Календарь"];
 
 export default function MainScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -113,13 +111,15 @@ export default function MainScreen() {
               onPress={() => {
                 if (tab === "Календарь") {
                   router.push("/calendar");
-                } else {
-                  if (petToEdit && tab ==="События"){
-                    router.push({
-                      pathname: "../events/[id]",
-                      params: { id: petToEdit.id }
-                    });
-                  }
+                }
+                if (petToEdit && tab ==="События"){
+                  router.push({
+                    pathname: "../events/[id]",
+                    params: { id: petToEdit.id }
+                  });
+                }
+                if (tab === "Документы") {
+                    router.push(`/animal/${selectedPetId}/documents`);
                 }
               }}
             >

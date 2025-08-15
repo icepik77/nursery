@@ -1,7 +1,7 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { format } from "date-fns"; // 💡 Для форматирования даты
 import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
-
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -14,8 +14,6 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
-
-import { format } from "date-fns"; // 💡 Для форматирования даты
 import { usePetContext } from "../context/formContext";
 
 const TABS = ["Профиль", "Вет. паспорт", "Документы", "Заметки", "Календарь"];
