@@ -3,44 +3,20 @@ import { useRouter } from "expo-router";
 import React from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useCart } from '../context/cartContext';
+import { useProducts } from '../context/productContext';
 
-const mockProducts = [
-  {
-    id: "1",
-    name: "Витамины для собак",
-    description: "Поддержка иммунитета и здоровья шерсти",
-    price: 450,
-    image: "https://place-puppy.com/200x150",
-  },
-  {
-    id: "2",
-    name: "Антигельминтный препарат",
-    description: "Эффективно против паразитов",
-    price: 700,
-    image: "https://placekitten.com/200/150",
-  },
-  {
-    id: "3",
-    name: "Шампунь для кошек",
-    description: "Нежный уход за шерстью",
-    price: 350,
-    image: "https://placekitten.com/201/150",
-  },
-  {
-    id: "4",
-    name: "Капли для ушей",
-    description: "Уход и чистка ушей питомца",
-    price: 500,
-    image: "https://place-puppy.com/201x150",
-  },
-];
+// console.log("RootLayout children:", React.Children.toArray(children));
+
 
 export default function StoreTab() {
+  const {products} = useProducts();
+  const mockProducts = products;
   const { addToCart, cart } = useCart();
   const router = useRouter();
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>Магазин</Text>
       <FlatList
         data={mockProducts}
         keyExtractor={(item) => item.id}
@@ -64,7 +40,12 @@ export default function StoreTab() {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 10, backgroundColor: "#f2f2f2" },
   row: { justifyContent: "space-between" },
-
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 24,
+    textAlign: "center",
+  },
   cartButton: {
     position: "absolute",
     bottom: 20,

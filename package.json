@@ -44,6 +44,7 @@
     "react-native-calendars": "https://codeload.github.com/craftworkco/react-native-calendars/tar.gz/ae19e2af74ecdb29d6117ca41fbf41977a10cc23",
     "react-native-dropdown-picker": "^5.4.6",
     "react-native-gesture-handler": "~2.24.0",
+    "react-native-mask-input": "^1.2.3",
     "react-native-open-file": "^1.0.9",
     "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "^5.4.0",

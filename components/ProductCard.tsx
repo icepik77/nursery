@@ -1,5 +1,6 @@
+import { useRouter } from 'expo-router';
 import React from 'react';
-import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Image, StyleSheet, Text, TouchableOpacity } from 'react-native';
 
 type Product = {
   id: string;
@@ -18,9 +19,23 @@ const { width } = Dimensions.get('window');
 const cardWidth = (width - 45) / 2; // 2 колонки с отступами
 
 export default function ProductCard({ product, onBuy }: ProductCardProps) {
+  const router = useRouter();
+
   return (
-    <View style={[styles.card, { width: cardWidth }]}>
-      <Image source={{ uri: product.image }} style={styles.image} resizeMode="cover" />
+    <TouchableOpacity
+      style={[styles.card, { width: cardWidth }]}
+      activeOpacity={0.9}
+      onPress={() => router.push(`/(tabs)/shop/product/${product.id}`)}
+    >
+      <Image
+        source={
+          product.image
+            ? { uri: product.image }
+            : require("@/assets/images/product-avatar.png") // путь к дефолтной картинке
+        }
+        style={styles.image}
+        resizeMode="cover"
+      />
       <Text style={styles.productName} numberOfLines={1}>
         {product.name}
       </Text>
@@ -28,10 +43,18 @@ export default function ProductCard({ product, onBuy }: ProductCardProps) {
         {product.description}
       </Text>
       <Text style={styles.price}>{product.price} ₽</Text>
-      <TouchableOpacity onPress={() => onBuy(product)} style={styles.button}>
+
+      {/* Кнопка "Купить" */}
+      <TouchableOpacity
+        onPress={(e) => {
+          e.stopPropagation(); // чтобы не срабатывал переход при нажатии на кнопку
+          onBuy(product);
+        }}
+        style={styles.button}
+      >
         <Text style={styles.buttonText}>Купить</Text>
       </TouchableOpacity>
-    </View>
+    </TouchableOpacity>
   );
 }
 

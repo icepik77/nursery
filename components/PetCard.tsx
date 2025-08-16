@@ -26,9 +26,24 @@ interface PetCardProps {
   onPress?: () => void;
 }
 
-export default function PetCard({ id, name, age, breed, imageUrl, gender, onPress }: PetCardProps) {
+export default function PetCard({ id, name, age = '1', breed, imageUrl, gender, onPress }: PetCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { removePet, setSelectedPetId } = usePetContext();
+
+  const getAge = (birthdate: string) => {
+    const today = new Date();
+    const birth = new Date(birthdate);
+
+    let age = today.getFullYear() - birth.getFullYear();
+
+    // проверяем, был ли уже день рождения в этом году
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+
+    return age;
+  };
 
   const handleEdit = () => {
     setSelectedPetId(id);
@@ -47,7 +62,14 @@ export default function PetCard({ id, name, age, breed, imageUrl, gender, onPres
   return (
     <View style={styles.card}>
       <Pressable onPress={onPress} style={styles.card}>
-        <Image source={{ uri: imageUrl }} style={styles.image} />
+        <Image
+          source={
+            imageUrl
+              ? { uri: imageUrl }
+              : require("@/assets/images/avatar.png") // путь к дефолтной картинке
+          }
+          style={styles.image}
+        />
         <View style={styles.rightContent}>
           <View style={styles.nameRow}>
             <Text style={styles.name}>{name}</Text>
@@ -55,7 +77,7 @@ export default function PetCard({ id, name, age, breed, imageUrl, gender, onPres
               <Text style={styles.menuText}>⋯</Text>
             </TouchableOpacity>
           </View>
-          <Text><Text style={styles.title}>Возраст:</Text> {age}</Text>
+          <Text>Возраст: {getAge(age)} лет</Text>
           <Text><Text style={styles.title}>Пол:</Text> {genderSymbol}</Text>
           <Text><Text style={styles.title}>Категория: </Text>кошки</Text>
           <Text><Text style={styles.title}>Порода:</Text> {breed}</Text>
