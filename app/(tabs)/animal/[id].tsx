@@ -13,10 +13,11 @@ import {
   View,
 } from "react-native";
 
+import BottomMenu from "@/components/BottomMenu";
 import { Pet, usePetContext } from "../context/formContext";
 
 // const TABS = ["Профиль", "Вет. паспорт", "Документы", "События", "Заметки", "Календарь"];
-const TABS = ["Профиль", "Медицина", "Документы", "Заметки", "Напоминания"];
+const TABS = ["Медицина", "Документы", "Заметки", "Напоминания"];
 
 export default function MainScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -91,7 +92,8 @@ export default function MainScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <View>
+      <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Профиль питомца</Text>
       <View style={styles.card}>
         {/* Tabs */}
@@ -180,6 +182,9 @@ export default function MainScreen() {
         </View>
       </View>
     </ScrollView>
+    <BottomMenu />
+    </View>
+    
   );
 }
 

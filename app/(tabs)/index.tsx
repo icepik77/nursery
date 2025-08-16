@@ -12,7 +12,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView>
         <View style={styles.header}>
           <Text style={styles.headerText}>Главная</Text>
           <ControlsBar />

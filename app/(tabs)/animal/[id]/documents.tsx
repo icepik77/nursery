@@ -1,3 +1,4 @@
+import BottomMenu from '@/components/BottomMenu';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
@@ -59,6 +60,7 @@ export default function PDFUploader() {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>Профиль питомца</Text>
       <ScrollView style={{ flex: 1 }}>
         {files.length === 0 && <Text style={styles.noFilesText}>Файлы не выбраны</Text>}
 
@@ -82,6 +84,7 @@ export default function PDFUploader() {
       <TouchableOpacity style={styles.fab} onPress={pickPDF} activeOpacity={0.7}>
         <MaterialIcons name="picture-as-pdf" size={28} color="#fff" />
       </TouchableOpacity>
+      <BottomMenu />
     </View>
   );
 }
@@ -91,7 +94,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f4f6f8',
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 40,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 24,
+    textAlign: "center",
   },
   noFilesText: {
     textAlign: 'center',
@@ -132,8 +141,8 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    bottom: 30,
-    right: 30,
+    bottom: 100,
+    right: 40,
     backgroundColor: '#00796b',
     width: 60,
     height: 60,

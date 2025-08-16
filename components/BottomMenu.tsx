@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 const tabs = [
   { name: "Главная", icon: "home-outline", route: "/" },
   { name: "Календарь", icon: "calendar-outline", route: "/calendar" },
-  { name: "Магазин", icon: "cart-outline", route: "/shop" },
+  { name: "Магазин", icon: "cart-outline", route: "/shop/shop" },
   { name: "Профиль", icon: "person-outline", route: "/profile" },
 ];
 

@@ -57,7 +57,9 @@ export default function PetCard({ id, name, age, breed, imageUrl, gender, onPres
           </View>
           <Text><Text style={styles.title}>Возраст:</Text> {age}</Text>
           <Text><Text style={styles.title}>Пол:</Text> {genderSymbol}</Text>
+          <Text><Text style={styles.title}>Категория: </Text>кошки</Text>
           <Text><Text style={styles.title}>Порода:</Text> {breed}</Text>
+          
         </View>
 
         <Modal

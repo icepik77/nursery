@@ -1,3 +1,4 @@
+import BottomMenu from '@/components/BottomMenu';
 import { MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import React, { useState } from 'react';
@@ -135,6 +136,7 @@ export default function MedicalInfoScreen() {
           </View>
         </View>
       </Modal>
+      <BottomMenu />
     </View>
   );
 }
