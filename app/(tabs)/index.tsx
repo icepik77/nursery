@@ -46,14 +46,13 @@ export default function HomeScreen() {
                 name={pet.name ?? "Без имени"}
                 breed={pet.breed}
                 gender={pet.gender}
-                age={"1 год"}
+                age={pet.birthdate}
                 imageUrl={pet.imageUri}
               />
             </Link>
           ))}
         </View>
       </ScrollView>
-
       <BottomMenu />
     </View>
   );

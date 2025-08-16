@@ -1,10 +1,12 @@
 import { Ionicons } from "@expo/vector-icons"; // ✅ импорт иконок
+import { useRouter } from "expo-router";
 import React from "react";
 import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useCart } from "../context/cartContext";
 
 export default function CartTab() {
   const { cart, removeFromCart, clearCart } = useCart();
+  const router = useRouter();
 
   const total = cart.reduce((sum, item) => sum + item.price, 0);
 
@@ -36,9 +38,10 @@ export default function CartTab() {
           />
           <View style={styles.summary}>
             <Text style={styles.total}>Итого: {total} ₽</Text>
-            <TouchableOpacity style={styles.checkoutBtn} onPress={checkout}>
+            <TouchableOpacity style={styles.checkoutBtn} onPress={() => router.push(`/(tabs)/shop/CheckoutTab`)}>
               <Text style={styles.checkoutText}>Оформить заказ</Text>
             </TouchableOpacity>
+            
           </View>
         </>
       )}
