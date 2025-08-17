@@ -6,6 +6,7 @@ import { useState } from "react";
 import {
   Alert,
   FlatList,
+  KeyboardAvoidingView,
   Platform,
   StyleSheet,
   Text,
@@ -69,61 +70,66 @@ export default function EventListScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>События: {pet.name}</Text>
+     <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <View style={styles.container}>
+        <Text style={styles.title}>События: {pet.name}</Text>
 
-      <FlatList
-        data={selectedPetEvents}
-        keyExtractor={(_, index) => index.toString()}
-        renderItem={({ item, index }) => (
-          <View style={styles.card}>
-            <View>
-              <Text style={styles.cardTitle}>{item.title}</Text>
-              <Text style={styles.cardDate}>{item.date}</Text>
+        <FlatList
+          data={selectedPetEvents}
+          keyExtractor={(_, index) => index.toString()}
+          renderItem={({ item, index }) => (
+            <View style={styles.card}>
+              <View>
+                <Text style={styles.cardTitle}>{item.title}</Text>
+                <Text style={styles.cardDate}>{item.date}</Text>
+              </View>
+              <View style={styles.actions}>
+                <TouchableOpacity onPress={() => startEdit(index)}>
+                  <Ionicons name="pencil" size={20} color="#4A90E2" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => confirmDelete(index)}>
+                  <Ionicons name="trash" size={20} color="red" />
+                </TouchableOpacity>
+              </View>
             </View>
-            <View style={styles.actions}>
-              <TouchableOpacity onPress={() => startEdit(index)}>
-                <Ionicons name="pencil" size={20} color="#4A90E2" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => confirmDelete(index)}>
-                <Ionicons name="trash" size={20} color="red" />
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-      />
-
-      {/* Форма */}
-      <View style={styles.form}>
-        <TextInput
-          placeholder="Название события"
-          value={title}
-          onChangeText={setTitle}
-          style={styles.input}
+          )}
         />
-        <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
-          <Ionicons name="calendar" size={18} color="#4A90E2" />
-          <Text style={styles.dateButtonText}>
-            {date ? date : "Выбрать дату"}
-          </Text>
-        </TouchableOpacity>
 
-        {showDatePicker && (
-          <DateTimePicker
-            value={date ? new Date(date) : new Date()}
-            mode="date"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={onDateChange}
+        {/* Форма */}
+        <View style={styles.form}>
+          <TextInput
+            placeholder="Название события"
+            value={title}
+            onChangeText={setTitle}
+            style={styles.input}
           />
-        )}
+          <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
+            <Ionicons name="calendar" size={18} color="#4A90E2" />
+            <Text style={styles.dateButtonText}>
+              {date ? date : "Выбрать дату"}
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>
-            {editingIndex !== null ? "Сохранить изменения" : "Добавить событие"}
-          </Text>
-        </TouchableOpacity>
+          {showDatePicker && (
+            <DateTimePicker
+              value={date ? new Date(date) : new Date()}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={onDateChange}
+            />
+          )}
+
+          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+            <Text style={styles.saveButtonText}>
+              {editingIndex !== null ? "Сохранить изменения" : "Добавить событие"}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -162,7 +168,7 @@ const styles = StyleSheet.create({
   },
   dateButtonText: { marginLeft: 8, color: "#4A90E2" },
   saveButton: {
-    backgroundColor: "#041029",
+    backgroundColor: "#00796b",
     padding: 12,
     borderRadius: 8,
   },

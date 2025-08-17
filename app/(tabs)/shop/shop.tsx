@@ -1,3 +1,4 @@
+import BottomMenu from '@/components/BottomMenu';
 import ProductCard from '@/components/ProductCard';
 import { useRouter } from "expo-router";
 import React from 'react';
@@ -33,6 +34,7 @@ export default function StoreTab() {
       >
         <Text style={styles.cartText}>🛒 {cart.length}</Text>
       </TouchableOpacity>
+      <BottomMenu />
     </View>
   );
 }
@@ -48,7 +50,7 @@ const styles = StyleSheet.create({
   },
   cartButton: {
     position: "absolute",
-    bottom: 20,
+    bottom: 100,
     right: 20,
     backgroundColor: "#007AFF",
     borderRadius: 30,

@@ -5,6 +5,8 @@ import React, { useEffect, useState } from "react";
 import {
   Dimensions,
   Image,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,7 +19,7 @@ import BottomMenu from "@/components/BottomMenu";
 import { Pet, usePetContext } from "../context/formContext";
 
 // const TABS = ["Профиль", "Вет. паспорт", "Документы", "События", "Заметки", "Календарь"];
-const TABS = ["Медицина", "Документы", "Заметки", "Напоминания"];
+const TABS = ["Медицина", "Документы", "Заметки", "График"];
 
 export default function MainScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -92,98 +94,104 @@ export default function MainScreen() {
   };
 
   return (
-    <View>
-      <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Профиль питомца</Text>
-      <View style={styles.card}>
-        {/* Tabs */}
-        {/* <View style={styles.tabsContainer}>
-          {TABS.map((tab) => (
-            <TouchableOpacity key={tab} style={styles.tabButton}>
-              <Text style={styles.tabText}>{tab}</Text>
-            </TouchableOpacity>
-          ))}
-        </View> */}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <View>
+        <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.title}>Профиль питомца</Text>
+        <View style={styles.card}>
+          {/* Tabs */}
+          {/* <View style={styles.tabsContainer}>
+            {TABS.map((tab) => (
+              <TouchableOpacity key={tab} style={styles.tabButton}>
+                <Text style={styles.tabText}>{tab}</Text>
+              </TouchableOpacity>
+            ))}
+          </View> */}
 
-        <View style={styles.tabsContainer}>
-          {TABS.map((tab) => (
-            <TouchableOpacity
-              key={tab}
-              style={styles.tabButton}
-              onPress={() => {
-                if (tab === "Календарь") {
-                  router.push("/calendar");
-                }
-                if (petToEdit && tab ==="События"){
-                  router.push({
-                    pathname: "../events/[id]",
-                    params: { id: petToEdit.id }
-                  });
-                }
-                if (tab === "Документы") {
-                    router.push(`/animal/${selectedPetId}/documents`);
-                }
-                if (tab === "Медицина") {
-                    router.push(`/animal/${selectedPetId}/medical`);
-                }
-              }}
-            >
-              <Text style={styles.tabText}>{tab}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Main content */}
-        <View style={styles.contentWrapper}>
-          {/* Left side: photo + button */}
-          <View style={styles.leftBlock}>
-            <TouchableOpacity onPress={pickImage}>
-              {imageUri ? (
-                <Image
-                  source={{ uri: imageUri }}
-                  style={styles.imagePlaceholder}
-                />
-              ) : (
-                <View style={styles.imagePlaceholder}>
-                  <Text style={styles.imageText}>Фото питомца</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.publishButton} onPress={handleSubmit}>
-              <Text style={styles.publishButtonText}>Опубликовать</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Right side: inputs */}
-          <View style={styles.rightBlock}>
-            {[
-              ["Кличка", "name"],
-              ["Пол", "gender"],
-              ["Дата рождения", "birthdate"],
-              ["Номер чипа", "chip"],
-              ["Порода", "breed"],
-              ["Вес", "weight"],
-              ["Рост в холке", "height"],
-              ["Окрас", "color"],
-              ["Примечание", "note"],
-            ].map(([label, name]) => (
-              <View key={name} style={styles.inputGroup}>
-                <Text style={styles.label}>{label}</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData[name as keyof typeof formData]}
-                  onChangeText={(text) =>
-                    setFormData((prev) => ({ ...prev, [name]: text }))
+          <View style={styles.tabsContainer}>
+            {TABS.map((tab) => (
+              <TouchableOpacity
+                key={tab}
+                style={styles.tabButton}
+                onPress={() => {
+                  if (tab === "Календарь") {
+                    router.push("/calendar");
                   }
-                />
-              </View>
+                  if (petToEdit && tab ==="График"){
+                    router.push({
+                      pathname: "../events/[id]",
+                      params: { id: petToEdit.id }
+                    });
+                  }
+                  if (tab === "Документы") {
+                      router.push(`/animal/${selectedPetId}/documents`);
+                  }
+                  if (tab === "Медицина") {
+                      router.push(`/animal/${selectedPetId}/medical`);
+                  }
+                }}
+              >
+                <Text style={styles.tabText}>{tab}</Text>
+              </TouchableOpacity>
             ))}
           </View>
+
+          {/* Main content */}
+          <View style={styles.contentWrapper}>
+            {/* Left side: photo + button */}
+            <View style={styles.leftBlock}>
+              <TouchableOpacity onPress={pickImage}>
+                {imageUri ? (
+                  <Image
+                    source={{ uri: imageUri }}
+                    style={styles.imagePlaceholder}
+                  />
+                ) : (
+                  <View style={styles.imagePlaceholder}>
+                    <Text style={styles.imageText}>Фото питомца</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.publishButton} onPress={handleSubmit}>
+                <Text style={styles.publishButtonText}>Опубликовать</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Right side: inputs */}
+            <View style={styles.rightBlock}>
+              {[
+                ["Кличка", "name"],
+                ["Пол", "gender"],
+                ["Дата рождения", "birthdate"],
+                ["Номер чипа", "chip"],
+                ["Порода", "breed"],
+                ["Вес", "weight"],
+                ["Рост в холке", "height"],
+                ["Окрас", "color"],
+                ["Примечание", "note"],
+              ].map(([label, name]) => (
+                <View key={name} style={styles.inputGroup}>
+                  <Text style={styles.label}>{label}</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData[name as keyof typeof formData]}
+                    onChangeText={(text) =>
+                      setFormData((prev) => ({ ...prev, [name]: text }))
+                    }
+                  />
+                </View>
+              ))}
+            </View>
+          </View>
         </View>
+      </ScrollView>
+      <BottomMenu />
       </View>
-    </ScrollView>
-    <BottomMenu />
-    </View>
+    </KeyboardAvoidingView>
+    
     
   );
 }

@@ -1,7 +1,8 @@
+import BottomMenu from "@/components/BottomMenu";
 import { Ionicons } from "@expo/vector-icons"; // ✅ импорт иконок
 import { useRouter } from "expo-router";
 import React from "react";
-import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useCart } from "../context/cartContext";
 
 export default function CartTab() {
@@ -26,9 +27,18 @@ export default function CartTab() {
             keyExtractor={(item, index) => item.id + index}
             renderItem={({ item }) => (
               <View style={styles.item}>
-                <View>
-                  <Text style={styles.name}>{item.name}</Text>
-                  <Text style={styles.price}>{item.price} ₽</Text>
+                <View style={styles.itemLeft}>
+                  {item.image ? (
+                    <Image source={{ uri: item.image }} style={styles.image} />
+                  ) : (
+                    <View style={styles.imagePlaceholder}>
+                      <Ionicons name="image-outline" size={32} color="#bbb" />
+                    </View>
+                  )}
+                  <View style={styles.textBlock}>
+                    <Text style={styles.name}>{item.name}</Text>
+                    <Text style={styles.price}>{item.price} ₽</Text>
+                  </View>
                 </View>
                 <TouchableOpacity onPress={() => removeFromCart(item.id)}>
                   <Ionicons name="trash-outline" size={22} color="red" /> 
@@ -45,12 +55,13 @@ export default function CartTab() {
           </View>
         </>
       )}
+      <BottomMenu />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 15, backgroundColor: "#f2f2f2", marginTop: 20 },
+  container: { flex: 1, padding: 15, backgroundColor: "#f2f2f2", marginTop: 20, },
   empty: { textAlign: "center", marginTop: 50, fontSize: 16, color: "#999" },
   item: {
     backgroundColor: "#fff",
@@ -62,14 +73,34 @@ const styles = StyleSheet.create({
     alignItems: "center",
     elevation: 2,
   },
+  itemLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  image: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    marginRight: 10,
+  },
   name: { fontSize: 14, fontWeight: "600", color: "#333" },
   price: { fontSize: 14, color: "#00796b", marginTop: 2 },
   summary: {
     marginTop: 15,
+    marginBottom: 80,
     padding: 15,
     backgroundColor: "#fff",
     borderRadius: 8,
     elevation: 2,
+  },
+  imagePlaceholder: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    marginRight: 10,
+    backgroundColor: "#eee",
+    justifyContent: "center",
+    alignItems: "center",
   },
   total: { fontSize: 16, fontWeight: "600", marginBottom: 10 },
   checkoutBtn: {
@@ -79,4 +110,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   checkoutText: { color: "#fff", fontWeight: "600" },
+  textBlock: {
+    flexDirection: "column",
+  },
 });
