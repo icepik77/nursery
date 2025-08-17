@@ -14,6 +14,7 @@ export type Pet = {
   note?: string;
   imageUri?: string;
   bigNote?: string;
+  category?: string; // ✅ добавили категорию
 };
 
 // Тип формы без id
@@ -65,6 +66,7 @@ const mockPets: Pet[] = [
     height: "28",
     color: "серый",
     note: "любит лазать по шкафам",
+    category: "домашние питомцы", // ✅ категория
   },
   {
     id: "2",
@@ -72,11 +74,12 @@ const mockPets: Pet[] = [
     gender: "женский",
     birthdate: "2021-08-03",
     chip: "009876543",
-    breed: "британская короткошерстная",
+    breed: "британская",
     weight: "4",
     height: "25",
     color: "голубой",
     note: "очень ласковая",
+    category: "домашние питомцы", // ✅ категория
   },
 ];
 
@@ -111,6 +114,8 @@ export const PetProvider = ({ children }: PetProviderProps) => {
       color: "",
       note: "",
       imageUri: "",
+      bigNote: "",
+      category: "", // ✅ сброс категории
     });
   };
 

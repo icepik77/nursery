@@ -1,3 +1,4 @@
+import { Picker } from "@react-native-picker/picker";
 import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -15,6 +16,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
 
 import BottomMenu from "@/components/BottomMenu";
 import { Pet, usePetContext } from "../context/formContext";
@@ -167,6 +169,24 @@ export default function MainScreen() {
 
               {/* Right side: inputs */}
               <View style={styles.rightBlock}>
+                {/* ✅ Новый селектор категории */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Категория</Text>
+                  <View style={styles.pickerWrapper}>
+                    <Picker
+                      selectedValue={formData.category || ""}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({ ...prev, category: value }))
+                      }
+                    >
+                      <Picker.Item label="Выберите категорию" value="" />
+                      <Picker.Item label="домашние питомцы" value="домашние питомцы" />
+                      <Picker.Item label="крупные животные" value="крупные животные" />
+                      <Picker.Item label="птицы" value="птицы" />
+                      <Picker.Item label="мелкие животные" value="мелкие животные" />
+                    </Picker>
+                  </View>
+                </View>
                 {[
                   ["Кличка", "name"],
                   ["Пол", "gender"],
@@ -300,4 +320,8 @@ const styles = StyleSheet.create({
   borderTopColor: "#E5E7EB",
   gap: 12,
 },
+  pickerWrapper: {
+    backgroundColor: "#F3F4F6",
+    borderRadius: 8,
+  },
 });

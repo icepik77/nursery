@@ -22,11 +22,12 @@ interface PetCardProps {
   weight?: string,
   height?: string,
   color?: string,
+  category?: string,
   note?: string,
   onPress?: () => void;
 }
 
-export default function PetCard({ id, name, age = '1', breed, imageUrl, gender, onPress }: PetCardProps) {
+export default function PetCard({ id, name, age = '1', breed, imageUrl, gender, onPress, category }: PetCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { removePet, setSelectedPetId } = usePetContext();
 
@@ -79,9 +80,8 @@ export default function PetCard({ id, name, age = '1', breed, imageUrl, gender, 
           </View>
           <Text><Text style={styles.title}>Возраст:</Text> {getAge(age)} лет</Text>
           <Text><Text style={styles.title}>Пол:</Text> {genderSymbol}</Text>
-          <Text><Text style={styles.title}>Категория: </Text>кошки</Text>
+          <Text><Text style={styles.title}>Категория: </Text>{category}</Text>
           <Text><Text style={styles.title}>Порода:</Text> {breed}</Text>
-          
         </View>
 
         <Modal
