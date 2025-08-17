@@ -1,6 +1,7 @@
 import BottomMenu from "@/components/BottomMenu";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { format } from "date-fns"; // 💡 Для форматирования даты
+import { Picker } from "@react-native-picker/picker"; // ✅ добавили Picker
+import { format } from "date-fns";
 import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
@@ -26,8 +27,8 @@ export default function MainScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const { selectedPetId, addEvent, formData, setFormData, addPet } = usePetContext();
-  const router = useRouter(); 
+  const { selectedPetId, formData, setFormData, addPet } = usePetContext();
+  const router = useRouter();
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -48,27 +49,24 @@ export default function MainScreen() {
         to: newPath,
       });
 
-      // 💡 Обновляем локальное состояние
       setImageUri(newPath);
-
-      // 💡 И сохраняем в formData
       setFormData({
         ...formData,
         imageUri: newPath,
       });
-    };
+    }
   };
 
   const handleSubmit = () => {
-    addPet(); // or await addPet() if it's async
-    router.replace("/"); // or router.push("/") if you want to stack it
+    addPet();
+    router.replace("/");
   };
 
   return (
     <>
       <KeyboardAvoidingView
-              style={{ flex: 1 }}
-              behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <SafeAreaView style={{ flex: 1 }}>
           <ScrollView contentContainerStyle={styles.container}>
@@ -84,7 +82,7 @@ export default function MainScreen() {
                     onPress={() => {
                       if (tab === "График") {
                         router.push("/calendar");
-                      } 
+                      }
                       if (tab === "Документы") {
                         router.push(`/animal/${selectedPetId}/documents`);
                       }
@@ -124,6 +122,26 @@ export default function MainScreen() {
 
                 {/* Right side: inputs */}
                 <View style={styles.rightBlock}>
+                  {/* ✅ Новый селектор категории */}
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Категория</Text>
+                    <View style={styles.pickerWrapper}>
+                      <Picker
+                        selectedValue={formData.category || ""}
+                        onValueChange={(value) =>
+                          setFormData((prev) => ({ ...prev, category: value }))
+                        }
+                      >
+                        <Picker.Item label="Выберите категорию" value="" />
+                        <Picker.Item label="домашние питомцы" value="домашние питомцы" />
+                        <Picker.Item label="крупные животные" value="крупные животные" />
+                        <Picker.Item label="птицы" value="птицы" />
+                        <Picker.Item label="мелкие животные" value="мелкие животные" />
+                      </Picker>
+                    </View>
+                  </View>
+
+                  {/* Остальные поля */}
                   {[
                     ["Кличка", "name"],
                     ["Пол", "gender"],
@@ -175,7 +193,7 @@ export default function MainScreen() {
                       ) : (
                         <TextInput
                           style={styles.input}
-                          value={formData[name as keyof typeof formData]}
+                          value={formData[name as keyof typeof formData] || ""}
                           onChangeText={(text) =>
                             setFormData((prev) => ({ ...prev, [name]: text }))
                           }
@@ -194,7 +212,6 @@ export default function MainScreen() {
       </View>
     </>
   );
-
 }
 
 const screenWidth = Dimensions.get("window").width;
@@ -210,7 +227,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 24,
     textAlign: "center",
-    marginTop:16,
+    marginTop: 16,
   },
   card: {
     backgroundColor: "#fff",
@@ -224,12 +241,12 @@ const styles = StyleSheet.create({
   tabsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8, // расстояние между табами
+    gap: 8,
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
     paddingBottom: 12,
     marginBottom: 16,
-    justifyContent: 'center'
+    justifyContent: "center",
   },
   tabButton: {
     paddingBottom: 6,
@@ -240,7 +257,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#4B5563",
   },
-    bottomMenuWrapper: {
+  bottomMenuWrapper: {
     position: "absolute",
     bottom: 0,
     left: 0,
@@ -280,7 +297,7 @@ const styles = StyleSheet.create({
   rightBlock: {
     flex: 1,
     gap: 12,
-    marginBottom:60
+    marginBottom: 60,
   },
   inputGroup: {
     marginBottom: 12,
@@ -296,11 +313,8 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 16,
   },
-  eventSection: {
-    marginTop: 24,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
-    gap: 12,
+  pickerWrapper: {
+    backgroundColor: "#F3F4F6",
+    borderRadius: 8,
   },
 });

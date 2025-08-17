@@ -1,64 +1,51 @@
-import React, { useState } from "react";
-import { Platform, StyleSheet, TextInput, View } from "react-native";
-import DropDownPicker from "react-native-dropdown-picker";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-export default function ControlsBar() {
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [sortOpen, setSortOpen] = useState(false);
+type ControlsBarProps = {
+  filter: "all" | "домашние питомцы" | "крупные животные" | "птицы" | "мелкие животные";
+  setFilter: React.Dispatch<
+    React.SetStateAction<
+      "all" | "домашние питомцы" | "крупные животные" | "птицы" | "мелкие животные"
+    >
+  >;
+  sortAZ: boolean;
+  setSortAZ: React.Dispatch<React.SetStateAction<boolean>>;
+};
 
-  const [filterValue, setFilterValue] = useState(null);
-  const [sortValue, setSortValue] = useState(null);
+const categories: ControlsBarProps["filter"][] = [
+  "all",
+  "домашние питомцы",
+  "крупные животные",
+  "птицы",
+  "мелкие животные",
+];
 
-  const [filterItems, setFilterItems] = useState([
-    { label: "Фильтр", value: null },
-    { label: "Собаки", value: "Собаки" },
-    { label: "Кошки", value: "Кошки" },
-  ]);
-
-  const [sortItems, setSortItems] = useState([
-    { label: "Сортировка", value: null },
-    { label: "По имени", value: "По имени" },
-    { label: "По возрасту", value: "По возрасту" },
-  ]);
-
+export default function ControlsBar({ filter, setFilter, sortAZ, setSortAZ }: ControlsBarProps) {
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.input}
-        placeholder="Поиск питомца..."
-        placeholderTextColor="#999"
-      />
+      {/* Фильтр по категориям */}
+      <View style={styles.filterRow}>
+        {categories.map((cat) => (
+          <TouchableOpacity
+            key={cat}
+            style={[styles.button, filter === cat && styles.activeButton]}
+            onPress={() => setFilter(cat)}
+          >
+            <Text style={[styles.buttonText, filter === cat && styles.activeText]}>
+              {cat === "all" ? "Все" : cat}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
-      <View style={styles.selectContainer}>
-        <View style={styles.dropdownWrapper}>
-          <DropDownPicker
-            open={filterOpen}
-            value={filterValue}
-            items={filterItems}
-            setOpen={setFilterOpen}
-            setValue={setFilterValue}
-            setItems={setFilterItems}
-            placeholder="Фильтр"
-            style={styles.dropdown}
-            textStyle={styles.dropdownText}
-            dropDownContainerStyle={styles.dropdownContainer}
-          />
-        </View>
-
-        <View style={styles.dropdownWrapper}>
-          <DropDownPicker
-            open={sortOpen}
-            value={sortValue}
-            items={sortItems}
-            setOpen={setSortOpen}
-            setValue={setSortValue}
-            setItems={setSortItems}
-            placeholder="Сортировка"
-            style={styles.dropdown}
-            textStyle={styles.dropdownText}
-            dropDownContainerStyle={styles.dropdownContainer}
-          />
-        </View>
+      {/* Сортировка */}
+      <View style={styles.sortRow}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setSortAZ(!sortAZ)}
+        >
+          <Text style={styles.buttonText}>Сортировка: {sortAZ ? "A→Z" : "Z→A"}</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -66,39 +53,33 @@ export default function ControlsBar() {
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: 16,
-    paddingHorizontal: 16,
-    gap: 16,
+    marginVertical: 12,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: Platform.OS === "ios" ? 16 : 12,
-    fontSize: 16,
-    backgroundColor: "#fff",
-  },
-  selectContainer: {
+  filterRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
-    width: "100%"
+    flexWrap: "wrap",
+    gap: 8,
+    justifyContent: "center",
+    marginBottom: 8,
   },
-  dropdownWrapper: {
-    flex: 1,
-    zIndex: 1000, // для корректного наложения выпадающих списков
-    width:"100%"
+  sortRow: {
+    flexDirection: "row",
+    justifyContent: "center",
   },
-  dropdown: {
-    borderColor: "#ccc",
+  button: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     borderRadius: 8,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#E5E7EB",
   },
-  dropdownText: {
-    fontSize: 16,
+  activeButton: {
+    backgroundColor: "#00796b",
   },
-  dropdownContainer: {
-    borderColor: "#ccc",
+  buttonText: {
+    color: "#4B5563",
+    fontWeight: "500",
+  },
+  activeText: {
+    color: "#fff",
   },
 });
