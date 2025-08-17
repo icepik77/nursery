@@ -1,6 +1,8 @@
 // app/products/[id].tsx
+import BottomMenu from "@/components/BottomMenu";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React from "react";
+import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useCart } from "../../context/cartContext";
 import { useProducts } from "../../context/productContext";
 
@@ -24,28 +26,32 @@ export default function ProductDetailsScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Image
-        source={
-            product.image
-            ? { uri: product.image }
-            : require("@/assets/images/product-avatar.png") // путь к дефолтной картинке
-        }
-        style={styles.image}
-       />
+    <SafeAreaView>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Image
+          source={
+              product.image
+              ? { uri: product.image }
+              : require("@/assets/images/product-avatar.png") // путь к дефолтной картинке
+          }
+          style={styles.image}
+        />
 
-      <Text style={styles.title}>{product.name}</Text>
-      <Text style={styles.price}>{product.price} ₽</Text>
-      <Text style={styles.description}>{product.description}</Text>
-      <Text style={styles.description}>{product.longDescription}</Text>
+        <Text style={styles.title}>{product.name}</Text>
+        <Text style={styles.price}>{product.price} ₽</Text>
+        <Text style={styles.description}>{product.description}</Text>
+        <Text style={styles.description}>{product.longDescription}</Text>
 
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => addToCart(product)}
-      >
-        <Text style={styles.addButtonText}>Добавить в корзину</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => addToCart(product)}
+        >
+          <Text style={styles.addButtonText}>Добавить в корзину</Text>
+        </TouchableOpacity>
+      </ScrollView>
+      <BottomMenu />
+    </SafeAreaView>
+    
   );
 }
 

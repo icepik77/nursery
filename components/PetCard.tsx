@@ -77,7 +77,7 @@ export default function PetCard({ id, name, age = '1', breed, imageUrl, gender, 
               <Text style={styles.menuText}>⋯</Text>
             </TouchableOpacity>
           </View>
-          <Text>Возраст: {getAge(age)} лет</Text>
+          <Text><Text style={styles.title}>Возраст:</Text> {getAge(age)} лет</Text>
           <Text><Text style={styles.title}>Пол:</Text> {genderSymbol}</Text>
           <Text><Text style={styles.title}>Категория: </Text>кошки</Text>
           <Text><Text style={styles.title}>Порода:</Text> {breed}</Text>
