@@ -26,8 +26,8 @@ export default function ProductDetailsScreen() {
   }
 
   return (
-    <SafeAreaView>
-      <ScrollView contentContainerStyle={styles.container}>
+    <SafeAreaView style={{ flex: 1 }}> 
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.container}>
         <Image
           source={
               product.image
@@ -59,6 +59,7 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     alignItems: "center",
+    marginTop:26 
   },
   image: {
     width: "100%",
@@ -71,6 +72,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: 10,
     textAlign: "center",
+    marginTop: 16,
   },
   price: {
     fontSize: 18,

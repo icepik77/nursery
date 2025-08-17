@@ -134,6 +134,9 @@ export default function MainScreen() {
                     if (tab === "Медицина") {
                         router.push(`/animal/${selectedPetId}/medical`);
                     }
+                    if (tab === "Заметки") {
+                        router.push(`/animal/${selectedPetId}/note`);
+                    }
                   }}
                 >
                   <Text style={styles.tabText}>{tab}</Text>
@@ -210,6 +213,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 24,
     textAlign: "center",
+    marginTop: 16,
   },
   card: {
     backgroundColor: "#fff",
@@ -273,6 +277,7 @@ const styles = StyleSheet.create({
   rightBlock: {
     flex: 1,
     gap: 12,
+    marginBottom:60
   },
   inputGroup: {
     marginBottom: 12,

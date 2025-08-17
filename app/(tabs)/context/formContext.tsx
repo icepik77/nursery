@@ -13,6 +13,7 @@ export type Pet = {
   color?: string;
   note?: string;
   imageUri?: string;
+  bigNote?: string;
 };
 
 // Тип формы без id

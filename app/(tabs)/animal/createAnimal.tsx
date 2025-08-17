@@ -84,10 +84,15 @@ export default function MainScreen() {
                     onPress={() => {
                       if (tab === "График") {
                         router.push("/calendar");
-                      } else {
-                          if (tab === "Документы") {
-                          router.push(`/animal/${selectedPetId}/documents`);
-                        }
+                      } 
+                      if (tab === "Документы") {
+                        router.push(`/animal/${selectedPetId}/documents`);
+                      }
+                      if (tab === "Медицина") {
+                        router.push(`/animal/${selectedPetId}/medical`);
+                      }
+                      if (tab === "Заметки") {
+                        router.push(`/animal/${selectedPetId}/note`);
                       }
                     }}
                   >
@@ -181,7 +186,6 @@ export default function MainScreen() {
                 </View>
               </View>
             </View>
-          
           </ScrollView>
         </SafeAreaView>
       </KeyboardAvoidingView>
@@ -206,7 +210,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 24,
     textAlign: "center",
-    marginTop:10,
+    marginTop:16,
   },
   card: {
     backgroundColor: "#fff",
@@ -276,6 +280,7 @@ const styles = StyleSheet.create({
   rightBlock: {
     flex: 1,
     gap: 12,
+    marginBottom:60
   },
   inputGroup: {
     marginBottom: 12,
@@ -292,10 +297,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   eventSection: {
-  marginTop: 24,
-  paddingTop: 16,
-  borderTopWidth: 1,
-  borderTopColor: "#E5E7EB",
-  gap: 12,
-},
+    marginTop: 24,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#E5E7EB",
+    gap: 12,
+  },
 });

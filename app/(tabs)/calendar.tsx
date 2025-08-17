@@ -43,7 +43,7 @@ export default function CalendarScreen() {
         if (date) {
           if (!newItems[date]) newItems[date] = [];
           newItems[date].push({
-            name: `📌 ${event.title} (${pet.name})`,
+            name: `${event.title} (${pet.name})`,
             height: 50,
           });
         }
@@ -69,10 +69,10 @@ export default function CalendarScreen() {
           </View>
         )}
         theme={{
-          agendaTodayColor: "#041029",
-          selectedDayBackgroundColor: "#041029",
-          dotColor: "#041029",
-          todayTextColor: "#041029",
+          agendaTodayColor: "#00796b",
+          selectedDayBackgroundColor: "#00796b",
+          dotColor: "#00796b",
+          todayTextColor: "#00796b",
         }}
       />
       <BottomMenu />

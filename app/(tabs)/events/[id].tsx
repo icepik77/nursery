@@ -141,7 +141,7 @@ export default function EventListScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff", padding: 16, marginTop: 30 },
-  title: { fontSize: 22, fontWeight: "bold", marginBottom: 15 },
+  title: { fontSize: 22, fontWeight: "bold", marginBottom: 15, marginTop: 16, },
   card: {
     flexDirection: "row",
     justifyContent: "space-between",

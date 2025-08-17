@@ -206,6 +206,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 24,
     textAlign: "center",
+    marginTop: 16,
   },
   section: {
     backgroundColor: '#fff',

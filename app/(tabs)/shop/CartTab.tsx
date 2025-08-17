@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  total: { fontSize: 16, fontWeight: "600", marginBottom: 10 },
+  total: { fontSize: 16, fontWeight: "600", marginBottom: 10, marginTop: 16, },
   checkoutBtn: {
     backgroundColor: "#00796b",
     padding: 12,

@@ -40,13 +40,14 @@ export default function StoreTab() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 10, backgroundColor: "#f2f2f2" },
+  container: { flex: 1, padding: 16, backgroundColor: "#f2f2f2" },
   row: { justifyContent: "space-between" },
   title: {
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 24,
     textAlign: "center",
+    marginTop: 16,
   },
   cartButton: {
     position: "absolute",
