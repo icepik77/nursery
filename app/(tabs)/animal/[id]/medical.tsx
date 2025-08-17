@@ -2,7 +2,7 @@ import BottomMenu from '@/components/BottomMenu';
 import { MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 type MedicalRecord = {
   id: string;
@@ -18,6 +18,8 @@ export default function MedicalInfoScreen() {
   const [date, setDate] = useState(new Date());
   const [type, setType] = useState('');
   const [details, setDetails] = useState('');
+  const [editingRecord, setEditingRecord] = useState<MedicalRecord | null>(null);
+
   const [records, setRecords] = useState<{ [key: string]: MedicalRecord[] }>({
     vaccines: [],
     parasites: [],
@@ -27,24 +29,59 @@ export default function MedicalInfoScreen() {
 
   const openAddModal = (section: string) => {
     setActiveSection(section);
+    setEditingRecord(null); // новый режим
+    setDate(new Date());
+    setType('');
+    setDetails('');
     setModalVisible(true);
   };
 
-  const addRecord = () => {
+  const openEditModal = (section: string, record: MedicalRecord) => {
+    setActiveSection(section);
+    setEditingRecord(record);
+    setDate(record.date);
+    setType(record.type);
+    setDetails(record.details || '');
+    setModalVisible(true);
+  };
+
+  const saveRecord = () => {
     if (!activeSection) return;
-    const newRecord: MedicalRecord = {
-      id: Date.now().toString(),
-      date,
-      type,
-      details,
-    };
+
+    if (editingRecord) {
+      // обновляем запись
+      setRecords(prev => ({
+        ...prev,
+        [activeSection]: prev[activeSection].map(r =>
+          r.id === editingRecord.id ? { ...r, date, type, details } : r
+        ),
+      }));
+    } else {
+      // создаём новую
+      const newRecord: MedicalRecord = {
+        id: Date.now().toString(),
+        date,
+        type,
+        details,
+      };
+      setRecords(prev => ({
+        ...prev,
+        [activeSection]: [...prev[activeSection], newRecord],
+      }));
+    }
+
+    setModalVisible(false);
+    setEditingRecord(null);
+  };
+
+  const deleteRecord = () => {
+    if (!activeSection || !editingRecord) return;
     setRecords(prev => ({
       ...prev,
-      [activeSection]: [...prev[activeSection], newRecord],
+      [activeSection]: prev[activeSection].filter(r => r.id !== editingRecord.id),
     }));
-    setType('');
-    setDetails('');
     setModalVisible(false);
+    setEditingRecord(null);
   };
 
   const renderSection = (title: string, sectionKey: keyof typeof records) => (
@@ -52,97 +89,108 @@ export default function MedicalInfoScreen() {
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>{title}</Text>
         <TouchableOpacity onPress={() => openAddModal(String(sectionKey))}>
-            <MaterialIcons name="add-circle" size={28} color="#00796b" />
+          <MaterialIcons name="add-circle" size={28} color="#00796b" />
         </TouchableOpacity>
       </View>
       {records[sectionKey].length === 0 ? (
         <Text style={styles.emptyText}>Нет данных</Text>
       ) : (
         records[sectionKey].map(item => (
-          <View key={item.id} style={styles.record}>
+          <TouchableOpacity
+            key={item.id}
+            style={styles.record}
+            onPress={() => openEditModal(String(sectionKey), item)}
+          >
             <Text style={styles.recordText}>
               {item.date.toLocaleDateString()} — {item.type}
             </Text>
             {item.details ? <Text style={styles.recordDetails}>{item.details}</Text> : null}
-          </View>
+          </TouchableOpacity>
         ))
       )}
     </View>
   );
 
   return (
-    <KeyboardAvoidingView
-                style={{ flex: 1 }}
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <View style={styles.container}>
-        <Text style={styles.title}>Медицина</Text>
-        <ScrollView>
-          {renderSection('Вакцинации', 'vaccines')}
-          {renderSection('Обработка от паразитов', 'parasites')}
-          {renderSection('Болезни и операции', 'illnesses')}
-          {renderSection('Аллергии', 'allergies')}
-        </ScrollView>
+    <>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <SafeAreaView style={styles.container}>
+          <Text style={styles.title}>Медицина</Text>
+          <ScrollView>
+            {renderSection('Вакцинации', 'vaccines')}
+            {renderSection('Обработка от паразитов', 'parasites')}
+            {renderSection('Болезни и операции', 'illnesses')}
+            {renderSection('Аллергии', 'allergies')}
+          </ScrollView>
 
-        {/* Модальное окно для добавления */}
-        <Modal visible={modalVisible} transparent animationType="slide">
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Добавить запись</Text>
+          {/* Модалка добавления/редактирования */}
+          <Modal visible={modalVisible} transparent animationType="slide">
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>
+                  {editingRecord ? 'Редактировать запись' : 'Добавить запись'}
+                </Text>
 
-              {/* Дата */}
-              {/* Кнопка для выбора даты */}
-              <TouchableOpacity 
-              style={styles.input} 
-              onPress={() => setShowDatePicker(true)}
-              >
-              <Text>{date.toLocaleDateString()}</Text>
-              </TouchableOpacity>
-
-              {/* Отдельный вызов пикера */}
-              {showDatePicker && (
-              <DateTimePicker
-                  value={date}
-                  mode="date"
-                  display="default"
-                  onChange={(event, selectedDate) => {
-                  setShowDatePicker(false);
-                  if (selectedDate) setDate(selectedDate);
-                  }}
-              />
-              )}
-
-              {/* Тип */}
-              <TextInput
-                style={styles.input}
-                placeholder="Тип (например: вакцина от бешенства)"
-                value={type}
-                onChangeText={setType}
-              />
-
-              {/* Детали */}
-              <TextInput
-                style={[styles.input, { height: 60 }]}
-                placeholder="Комментарий / детали"
-                value={details}
-                onChangeText={setDetails}
-                multiline
-              />
-
-              <View style={styles.modalActions}>
-                <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
-                  <Text style={styles.cancelText}>Отмена</Text>
+                {/* Дата */}
+                <TouchableOpacity 
+                  style={styles.input} 
+                  onPress={() => setShowDatePicker(true)}
+                >
+                  <Text>{date.toLocaleDateString()}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.saveBtn} onPress={addRecord}>
-                  <Text style={styles.saveText}>Сохранить</Text>
-                </TouchableOpacity>
+
+                {showDatePicker && (
+                  <DateTimePicker
+                    value={date}
+                    mode="date"
+                    display="default"
+                    onChange={(event, selectedDate) => {
+                      setShowDatePicker(false);
+                      if (selectedDate) setDate(selectedDate);
+                    }}
+                  />
+                )}
+
+                {/* Тип */}
+                <TextInput
+                  style={styles.input}
+                  placeholder="Тип (например: вакцина от бешенства)"
+                  value={type}
+                  onChangeText={setType}
+                />
+
+                {/* Детали */}
+                <TextInput
+                  style={[styles.input, { height: 60 }]}
+                  placeholder="Комментарий / детали"
+                  value={details}
+                  onChangeText={setDetails}
+                  multiline
+                />
+
+                <View style={styles.modalActions}>
+                  {editingRecord && (
+                    <TouchableOpacity style={styles.deleteBtn} onPress={deleteRecord}>
+                      <Text style={styles.deleteText}>Удалить</Text>
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
+                    <Text style={styles.cancelText}>Отмена</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.saveBtn} onPress={saveRecord}>
+                    <Text style={styles.saveText}>{editingRecord ? 'Сохранить' : 'Добавить'}</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
-          </View>
-        </Modal>
-        <BottomMenu />
-      </View>
-    </KeyboardAvoidingView>
+          </Modal>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
+      <BottomMenu />
+    </>
   );
 }
 
@@ -153,7 +201,6 @@ const styles = StyleSheet.create({
     padding: 20,
     marginTop:20,
   },
-  headerText: { fontSize: 28, fontWeight: "bold", marginBottom: 12, marginTop:14 },
   title: {
     fontSize: 24,
     fontWeight: "bold",
@@ -241,5 +288,14 @@ const styles = StyleSheet.create({
   saveText: {
     color: '#fff',
     fontSize: 16,
+  },
+  deleteBtn: {
+    marginRight: 'auto',
+    marginTop: 10,
+  },
+  deleteText: {
+    color: '#d32f2f',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

@@ -1,4 +1,5 @@
 // app/events/[petId].tsx
+import BottomMenu from "@/components/BottomMenu";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useLocalSearchParams } from "expo-router";
@@ -8,6 +9,7 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
+  SafeAreaView,
   StyleSheet,
   Text,
   TextInput,
@@ -70,66 +72,70 @@ export default function EventListScreen() {
   };
 
   return (
-     <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+    <>
+      <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <View style={styles.container}>
-        <Text style={styles.title}>События: {pet.name}</Text>
+        <SafeAreaView style={styles.container}>
+          <Text style={styles.title}>События: {pet.name}</Text>
 
-        <FlatList
-          data={selectedPetEvents}
-          keyExtractor={(_, index) => index.toString()}
-          renderItem={({ item, index }) => (
-            <View style={styles.card}>
-              <View>
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                <Text style={styles.cardDate}>{item.date}</Text>
+          <FlatList
+            data={selectedPetEvents}
+            keyExtractor={(_, index) => index.toString()}
+            renderItem={({ item, index }) => (
+              <View style={styles.card}>
+                <View>
+                  <Text style={styles.cardTitle}>{item.title}</Text>
+                  <Text style={styles.cardDate}>{item.date}</Text>
+                </View>
+                <View style={styles.actions}>
+                  <TouchableOpacity onPress={() => startEdit(index)}>
+                    <Ionicons name="pencil" size={20} color="#4A90E2" />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => confirmDelete(index)}>
+                    <Ionicons name="trash" size={20} color="red" />
+                  </TouchableOpacity>
+                </View>
               </View>
-              <View style={styles.actions}>
-                <TouchableOpacity onPress={() => startEdit(index)}>
-                  <Ionicons name="pencil" size={20} color="#4A90E2" />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => confirmDelete(index)}>
-                  <Ionicons name="trash" size={20} color="red" />
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-        />
-
-        {/* Форма */}
-        <View style={styles.form}>
-          <TextInput
-            placeholder="Название события"
-            value={title}
-            onChangeText={setTitle}
-            style={styles.input}
+            )}
           />
-          <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
-            <Ionicons name="calendar" size={18} color="#4A90E2" />
-            <Text style={styles.dateButtonText}>
-              {date ? date : "Выбрать дату"}
-            </Text>
-          </TouchableOpacity>
 
-          {showDatePicker && (
-            <DateTimePicker
-              value={date ? new Date(date) : new Date()}
-              mode="date"
-              display={Platform.OS === "ios" ? "spinner" : "default"}
-              onChange={onDateChange}
+          {/* Форма */}
+          <View style={styles.form}>
+            <TextInput
+              placeholder="Название события"
+              value={title}
+              onChangeText={setTitle}
+              style={styles.input}
             />
-          )}
+            <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
+              <Ionicons name="calendar" size={18} color="#4A90E2" />
+              <Text style={styles.dateButtonText}>
+                {date ? date : "Выбрать дату"}
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            <Text style={styles.saveButtonText}>
-              {editingIndex !== null ? "Сохранить изменения" : "Добавить событие"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </KeyboardAvoidingView>
+            {showDatePicker && (
+              <DateTimePicker
+                value={date ? new Date(date) : new Date()}
+                mode="date"
+                display={Platform.OS === "ios" ? "spinner" : "default"}
+                onChange={onDateChange}
+              />
+            )}
+
+            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+              <Text style={styles.saveButtonText}>
+                {editingIndex !== null ? "Сохранить изменения" : "Добавить событие"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
+      <BottomMenu/>
+    </>
+     
   );
 }
 
@@ -151,7 +157,7 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 16, fontWeight: "bold" },
   cardDate: { color: "#555" },
   actions: { flexDirection: "row", alignItems: "center", gap: 12 },
-  form: { marginTop: 20 },
+  form: { marginTop: 20, marginBottom: 80 },
   input: {
     backgroundColor: "#f1f1f1",
     padding: 10,

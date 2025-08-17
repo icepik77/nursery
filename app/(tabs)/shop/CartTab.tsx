@@ -2,7 +2,7 @@ import BottomMenu from "@/components/BottomMenu";
 import { Ionicons } from "@expo/vector-icons"; // ✅ импорт иконок
 import { useRouter } from "expo-router";
 import React from "react";
-import { Alert, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, FlatList, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useCart } from "../context/cartContext";
 
 export default function CartTab() {
@@ -17,7 +17,7 @@ export default function CartTab() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {cart.length === 0 ? (
         <Text style={styles.empty}>Корзина пуста</Text>
       ) : (
@@ -56,7 +56,7 @@ export default function CartTab() {
         </>
       )}
       <BottomMenu />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   },
   total: { fontSize: 16, fontWeight: "600", marginBottom: 10 },
   checkoutBtn: {
-    backgroundColor: "#00bfa5",
+    backgroundColor: "#00796b",
     padding: 12,
     borderRadius: 8,
     alignItems: "center",

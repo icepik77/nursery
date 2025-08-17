@@ -1,22 +1,20 @@
 import BottomMenu from '@/components/BottomMenu';
 import ProductCard from '@/components/ProductCard';
+import { Ionicons } from "@expo/vector-icons"; // ← добавляем
 import { useRouter } from "expo-router";
 import React from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, SafeAreaView, StyleSheet, Text, TouchableOpacity } from "react-native";
 import { useCart } from '../context/cartContext';
 import { useProducts } from '../context/productContext';
 
-// console.log("RootLayout children:", React.Children.toArray(children));
-
-
 export default function StoreTab() {
-  const {products} = useProducts();
+  const { products } = useProducts();
   const mockProducts = products;
   const { addToCart, cart } = useCart();
   const router = useRouter();
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Магазин</Text>
       <FlatList
         data={mockProducts}
@@ -30,12 +28,14 @@ export default function StoreTab() {
       {/* Кнопка корзины */}
       <TouchableOpacity
         style={styles.cartButton}
-        onPress={() => router.push("/(tabs)/shop/CartTab")} // навигация в таб корзины
+        onPress={() => router.push("/(tabs)/shop/CartTab")}
       >
-        <Text style={styles.cartText}>🛒 {cart.length}</Text>
+        <Ionicons name="cart" size={24} color="#fff" />
+        <Text style={styles.cartCount}>{cart.length}</Text>
       </TouchableOpacity>
+
       <BottomMenu />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -54,13 +54,15 @@ const styles = StyleSheet.create({
     right: 20,
     backgroundColor: "#007AFF",
     borderRadius: 30,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    padding: 15,
     elevation: 5,
+    flexDirection: "row",
+    alignItems: "center",
   },
-  cartText: {
+  cartCount: {
     color: "#fff",
     fontWeight: "bold",
     fontSize: 16,
+    marginLeft: 8,
   },
 });

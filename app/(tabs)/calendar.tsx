@@ -1,3 +1,4 @@
+import BottomMenu from "@/components/BottomMenu";
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -74,6 +75,7 @@ export default function CalendarScreen() {
           todayTextColor: "#041029",
         }}
       />
+      <BottomMenu />
     </SafeAreaView>
   );
 }

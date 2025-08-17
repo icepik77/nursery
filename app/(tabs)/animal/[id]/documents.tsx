@@ -3,7 +3,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { usePetContext } from '../../context/formContext';
 
 type MockFile = {
@@ -59,7 +59,7 @@ export default function PDFUploader() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Профиль питомца</Text>
       <ScrollView style={{ flex: 1 }}>
         {files.length === 0 && <Text style={styles.noFilesText}>Файлы не выбраны</Text>}
@@ -85,7 +85,7 @@ export default function PDFUploader() {
         <MaterialIcons name="picture-as-pdf" size={28} color="#fff" />
       </TouchableOpacity>
       <BottomMenu />
-    </View>
+    </SafeAreaView>
   );
 }
 
