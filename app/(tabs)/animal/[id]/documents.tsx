@@ -60,7 +60,7 @@ export default function PDFUploader() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Профиль питомца</Text>
+      <Text style={styles.title}>Документы</Text>
       <ScrollView style={{ flex: 1 }}>
         {files.length === 0 && <Text style={styles.noFilesText}>Файлы не выбраны</Text>}
 
@@ -101,6 +101,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 24,
     textAlign: "center",
+    marginTop: 16,
   },
   noFilesText: {
     textAlign: 'center',

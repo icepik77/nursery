@@ -5,7 +5,7 @@ import { StyleSheet, Text, View } from "react-native";
 export default function ShopScreen() {
   return (
     <View style={styles.container}>
-      <Text>Заглушка Магазина</Text>
+      <Text>Нет подключения к серверу</Text>
     </View>
   );
 }

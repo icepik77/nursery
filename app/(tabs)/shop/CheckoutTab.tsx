@@ -41,12 +41,12 @@ export default function CheckoutTab() {
   };
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f9f9f9' }}>
       <KeyboardAvoidingView
-                  style={{ flex: 1 }}
-                  behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <ScrollView contentContainerStyle={{ paddingBottom: 140 }} style={styles.container}>
+        <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 140 }}>
           <Text style={styles.header}>Ваш заказ</Text>
 
           {cart.map(item => (
@@ -104,10 +104,16 @@ export default function CheckoutTab() {
 
           <Text style={styles.sectionHeader}>Способ оплаты</Text>
           <View style={styles.paymentOptions}>
-            <TouchableOpacity onPress={() => setPaymentMethod('card')} style={paymentMethod === 'card' ? styles.selectedOption : styles.option}>
+            <TouchableOpacity
+              onPress={() => setPaymentMethod('card')}
+              style={paymentMethod === 'card' ? styles.selectedOption : styles.option}
+            >
               <Text style={paymentMethod === 'card' ? { color: '#fff' } : {}}>Карта</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setPaymentMethod('cash')} style={paymentMethod === 'cash' ? styles.selectedOption : styles.option}>
+            <TouchableOpacity
+              onPress={() => setPaymentMethod('cash')}
+              style={paymentMethod === 'cash' ? styles.selectedOption : styles.option}
+            >
               <Text style={paymentMethod === 'cash' ? { color: '#fff' } : {}}>Наличные</Text>
             </TouchableOpacity>
           </View>
@@ -117,13 +123,13 @@ export default function CheckoutTab() {
       </KeyboardAvoidingView>
       <BottomMenu />
     </SafeAreaView>
-    
   );
+
 }
 
 const styles = StyleSheet.create({
   container: { padding: 20, backgroundColor: '#f9f9f9', flex: 1 },
-  header: { fontSize: 22, fontWeight: 'bold', marginBottom: 15 },
+  header: { fontSize: 22, fontWeight: 'bold', marginBottom: 15, marginTop: 16, },
   item: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10, backgroundColor: '#fff', padding: 10, borderRadius: 8 },
   itemName: { fontSize: 16 },
   itemPrice: { fontSize: 16, fontWeight: 'bold' },
