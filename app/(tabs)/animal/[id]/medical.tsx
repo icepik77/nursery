@@ -2,7 +2,7 @@ import BottomMenu from '@/components/BottomMenu';
 import { MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import React, { useState } from 'react';
-import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 type MedicalRecord = {
   id: string;
@@ -71,73 +71,78 @@ export default function MedicalInfoScreen() {
   );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Медицина</Text>
-      <ScrollView>
-        {renderSection('Вакцинации', 'vaccines')}
-        {renderSection('Обработка от паразитов', 'parasites')}
-        {renderSection('Болезни и операции', 'illnesses')}
-        {renderSection('Аллергии', 'allergies')}
-      </ScrollView>
+    <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <View style={styles.container}>
+        <Text style={styles.title}>Медицина</Text>
+        <ScrollView>
+          {renderSection('Вакцинации', 'vaccines')}
+          {renderSection('Обработка от паразитов', 'parasites')}
+          {renderSection('Болезни и операции', 'illnesses')}
+          {renderSection('Аллергии', 'allergies')}
+        </ScrollView>
 
-      {/* Модальное окно для добавления */}
-      <Modal visible={modalVisible} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Добавить запись</Text>
+        {/* Модальное окно для добавления */}
+        <Modal visible={modalVisible} transparent animationType="slide">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Добавить запись</Text>
 
-            {/* Дата */}
-            {/* Кнопка для выбора даты */}
-            <TouchableOpacity 
-            style={styles.input} 
-            onPress={() => setShowDatePicker(true)}
-            >
-            <Text>{date.toLocaleDateString()}</Text>
-            </TouchableOpacity>
-
-            {/* Отдельный вызов пикера */}
-            {showDatePicker && (
-            <DateTimePicker
-                value={date}
-                mode="date"
-                display="default"
-                onChange={(event, selectedDate) => {
-                setShowDatePicker(false);
-                if (selectedDate) setDate(selectedDate);
-                }}
-            />
-            )}
-
-            {/* Тип */}
-            <TextInput
-              style={styles.input}
-              placeholder="Тип (например: вакцина от бешенства)"
-              value={type}
-              onChangeText={setType}
-            />
-
-            {/* Детали */}
-            <TextInput
-              style={[styles.input, { height: 60 }]}
-              placeholder="Комментарий / детали"
-              value={details}
-              onChangeText={setDetails}
-              multiline
-            />
-
-            <View style={styles.modalActions}>
-              <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
-                <Text style={styles.cancelText}>Отмена</Text>
+              {/* Дата */}
+              {/* Кнопка для выбора даты */}
+              <TouchableOpacity 
+              style={styles.input} 
+              onPress={() => setShowDatePicker(true)}
+              >
+              <Text>{date.toLocaleDateString()}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.saveBtn} onPress={addRecord}>
-                <Text style={styles.saveText}>Сохранить</Text>
-              </TouchableOpacity>
+
+              {/* Отдельный вызов пикера */}
+              {showDatePicker && (
+              <DateTimePicker
+                  value={date}
+                  mode="date"
+                  display="default"
+                  onChange={(event, selectedDate) => {
+                  setShowDatePicker(false);
+                  if (selectedDate) setDate(selectedDate);
+                  }}
+              />
+              )}
+
+              {/* Тип */}
+              <TextInput
+                style={styles.input}
+                placeholder="Тип (например: вакцина от бешенства)"
+                value={type}
+                onChangeText={setType}
+              />
+
+              {/* Детали */}
+              <TextInput
+                style={[styles.input, { height: 60 }]}
+                placeholder="Комментарий / детали"
+                value={details}
+                onChangeText={setDetails}
+                multiline
+              />
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
+                  <Text style={styles.cancelText}>Отмена</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.saveBtn} onPress={addRecord}>
+                  <Text style={styles.saveText}>Сохранить</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
-      <BottomMenu />
-    </View>
+        </Modal>
+        <BottomMenu />
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 

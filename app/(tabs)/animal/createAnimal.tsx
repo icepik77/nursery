@@ -8,6 +8,8 @@ import React, { useState } from "react";
 import {
   Dimensions,
   Image,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,7 +19,7 @@ import {
 } from "react-native";
 import { usePetContext } from "../context/formContext";
 
-const TABS = ["Медицина", "Документы", "Заметки", "Напоминания"];
+const TABS = ["Медицина", "Документы", "Заметки", "График"];
 
 export default function MainScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -62,124 +64,128 @@ export default function MainScreen() {
   };
 
   return (
-    <View style={{ flex: 1 }}>
-       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Создать профиль</Text>
+    <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <View style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.container}>
+          <Text style={styles.title}>Создать профиль</Text>
 
-        <View style={styles.card}>
-          {/* Tabs */}
-          <View style={styles.tabsContainer}>
-            {TABS.map((tab) => (
-              <TouchableOpacity
-                key={tab}
-                style={styles.tabButton}
-                onPress={() => {
-                  if (tab === "Календарь") {
-                    router.push("/calendar");
-                  } else {
-                      if (tab === "Документы") {
-                      router.push(`/animal/${selectedPetId}/documents`);
-                    }
-                  }
-                }}
-              >
-                <Text style={styles.tabText}>{tab}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* Main content */}
-          <View style={styles.contentWrapper}>
-            {/* Left side: photo + button */}
-            <View style={styles.leftBlock}>
-              <TouchableOpacity onPress={pickImage}>
-                {imageUri ? (
-                  <Image
-                    source={{ uri: imageUri }}
-                    style={styles.imagePlaceholder}
-                  />
-                ) : (
-                  <View style={styles.imagePlaceholder}>
-                    <Text style={styles.imageText}>Фото питомца</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.publishButton} onPress={handleSubmit}>
-                <Text style={styles.publishButtonText}>Опубликовать</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Right side: inputs */}
-            <View style={styles.rightBlock}>
-              {[
-                ["Кличка", "name"],
-                ["Пол", "gender"],
-                ["Дата рождения", "birthdate"],
-                ["Номер чипа", "chip"],
-                ["Порода", "breed"],
-                ["Вес", "weight"],
-                ["Рост в холке", "height"],
-                ["Окрас", "color"],
-                ["Примечание", "note"],
-              ].map(([label, name]) => (
-                <View key={name} style={styles.inputGroup}>
-                  <Text style={styles.label}>{label}</Text>
-
-                  {name === "birthdate" ? (
-                    <>
-                      <TouchableOpacity
-                        onPress={() => setShowDatePicker(true)}
-                        style={[styles.input, { justifyContent: "center" }]}
-                      >
-                        <Text>
-                          {formData.birthdate
-                            ? format(new Date(formData.birthdate), "yyyy-MM-dd")
-                            : "Выберите дату"}
-                        </Text>
-                      </TouchableOpacity>
-
-                      {showDatePicker && (
-                        <DateTimePicker
-                          value={
-                            formData.birthdate
-                              ? new Date(formData.birthdate)
-                              : new Date()
-                          }
-                          mode="date"
-                          display="default"
-                          onChange={(event, selectedDate) => {
-                            setShowDatePicker(false);
-                            if (selectedDate) {
-                              setFormData((prev) => ({
-                                ...prev,
-                                birthdate: format(selectedDate, "yyyy-MM-dd"),
-                              }));
-                            }
-                          }}
-                        />
-                      )}
-                    </>
-                  ) : (
-                    <TextInput
-                      style={styles.input}
-                      value={formData[name as keyof typeof formData]}
-                      onChangeText={(text) =>
-                        setFormData((prev) => ({ ...prev, [name]: text }))
+          <View style={styles.card}>
+            {/* Tabs */}
+            <View style={styles.tabsContainer}>
+              {TABS.map((tab) => (
+                <TouchableOpacity
+                  key={tab}
+                  style={styles.tabButton}
+                  onPress={() => {
+                    if (tab === "График") {
+                      router.push("/calendar");
+                    } else {
+                        if (tab === "Документы") {
+                        router.push(`/animal/${selectedPetId}/documents`);
                       }
-                    />
-                  )}
-                </View>
+                    }
+                  }}
+                >
+                  <Text style={styles.tabText}>{tab}</Text>
+                </TouchableOpacity>
               ))}
             </View>
+
+            {/* Main content */}
+            <View style={styles.contentWrapper}>
+              {/* Left side: photo + button */}
+              <View style={styles.leftBlock}>
+                <TouchableOpacity onPress={pickImage}>
+                  {imageUri ? (
+                    <Image
+                      source={{ uri: imageUri }}
+                      style={styles.imagePlaceholder}
+                    />
+                  ) : (
+                    <View style={styles.imagePlaceholder}>
+                      <Text style={styles.imageText}>Фото питомца</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.publishButton} onPress={handleSubmit}>
+                  <Text style={styles.publishButtonText}>Опубликовать</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Right side: inputs */}
+              <View style={styles.rightBlock}>
+                {[
+                  ["Кличка", "name"],
+                  ["Пол", "gender"],
+                  ["Дата рождения", "birthdate"],
+                  ["Номер чипа", "chip"],
+                  ["Порода", "breed"],
+                  ["Вес", "weight"],
+                  ["Рост в холке", "height"],
+                  ["Окрас", "color"],
+                  ["Примечание", "note"],
+                ].map(([label, name]) => (
+                  <View key={name} style={styles.inputGroup}>
+                    <Text style={styles.label}>{label}</Text>
+
+                    {name === "birthdate" ? (
+                      <>
+                        <TouchableOpacity
+                          onPress={() => setShowDatePicker(true)}
+                          style={[styles.input, { justifyContent: "center" }]}
+                        >
+                          <Text>
+                            {formData.birthdate
+                              ? format(new Date(formData.birthdate), "yyyy-MM-dd")
+                              : "Выберите дату"}
+                          </Text>
+                        </TouchableOpacity>
+
+                        {showDatePicker && (
+                          <DateTimePicker
+                            value={
+                              formData.birthdate
+                                ? new Date(formData.birthdate)
+                                : new Date()
+                            }
+                            mode="date"
+                            display="default"
+                            onChange={(event, selectedDate) => {
+                              setShowDatePicker(false);
+                              if (selectedDate) {
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  birthdate: format(selectedDate, "yyyy-MM-dd"),
+                                }));
+                              }
+                            }}
+                          />
+                        )}
+                      </>
+                    ) : (
+                      <TextInput
+                        style={styles.input}
+                        value={formData[name as keyof typeof formData]}
+                        onChangeText={(text) =>
+                          setFormData((prev) => ({ ...prev, [name]: text }))
+                        }
+                      />
+                    )}
+                  </View>
+                ))}
+              </View>
+            </View>
           </View>
+        
+        </ScrollView>
+        <View style={styles.bottomMenuWrapper}>
+          <BottomMenu />
         </View>
-      
-      </ScrollView>
-      <View style={styles.bottomMenuWrapper}>
-        <BottomMenu />
       </View>
-    </View>
-   
+    </KeyboardAvoidingView>
   );
 
 }

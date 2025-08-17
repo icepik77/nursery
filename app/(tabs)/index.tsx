@@ -3,7 +3,7 @@ import ControlsBar from "@/components/ControlsBar";
 import PetCard from "@/components/PetCard";
 import { Link, useRouter } from "expo-router";
 import React from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { usePetContext } from "./context/formContext";
 
 export default function HomeScreen() {
@@ -11,50 +11,52 @@ export default function HomeScreen() {
   const { pets } = usePetContext();
 
   return (
-    <View style={styles.container}>
-      <ScrollView>
-        <View style={styles.header}>
-          <Text style={styles.headerText}>Главная</Text>
-          <ControlsBar />
-          <TouchableOpacity 
-            style={styles.addButton}
-            onPress={() => router.push("/animal/createAnimal")}
-          >
-            <Text style={styles.addButtonText}>Добавить питомца</Text>
-          </TouchableOpacity>
-
-          {/* <TouchableOpacity 
-            style={styles.addButton}
-            onPress={() => router.push("/calendar")}
-          >
-            <Text style={styles.addButtonText}>Перейти в календарь</Text>
-          </TouchableOpacity> */}
-        </View>
-
-        <View style={styles.cardsContainer}>
-          {pets.map((pet) => (
-            <Link
-              href={{
-                pathname: "/animal/[id]",
-                params: { id: pet.id }
-              }}
-              asChild
-              key={pet.id}
+    <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <View style={styles.container}>
+        <ScrollView 
+          contentContainerStyle={{ paddingBottom: 80 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.header}>
+            <Text style={styles.headerText}>Главная</Text>
+            <ControlsBar />
+            <TouchableOpacity 
+              style={styles.addButton}
+              onPress={() => router.push("/animal/createAnimal")}
             >
-              <PetCard
-                id={pet.id}
-                name={pet.name ?? "Без имени"}
-                breed={pet.breed}
-                gender={pet.gender}
-                age={pet.birthdate}
-                imageUrl={pet.imageUri}
-              />
-            </Link>
-          ))}
-        </View>
-      </ScrollView>
-      <BottomMenu />
-    </View>
+              <Text style={styles.addButtonText}>Добавить питомца</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.cardsContainer}>
+            {pets.map((pet) => (
+              <Link
+                href={{
+                  pathname: "/animal/[id]",
+                  params: { id: pet.id }
+                }}
+                asChild
+                key={pet.id}
+              >
+                <PetCard
+                  id={pet.id}
+                  name={pet.name ?? "Без имени"}
+                  breed={pet.breed}
+                  gender={pet.gender}
+                  age={pet.birthdate}
+                  imageUrl={pet.imageUri}
+                />
+              </Link>
+            ))}
+          </View>
+        </ScrollView>
+        <BottomMenu />
+      </View>
+    </KeyboardAvoidingView>
+    
   );
 }
 
