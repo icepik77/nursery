@@ -22,7 +22,8 @@ export default function MedicalInfoScreen() {
 
   const [records, setRecords] = useState<{ [key: string]: MedicalRecord[] }>({
     vaccines: [],
-    parasites: [],
+    deworming: [],
+    ticks: [],
     illnesses: [],
     allergies: [],
   });
@@ -121,7 +122,8 @@ export default function MedicalInfoScreen() {
           <Text style={styles.title}>Медицина</Text>
           <ScrollView>
             {renderSection('Вакцинации', 'vaccines')}
-            {renderSection('Обработка от паразитов', 'parasites')}
+            {renderSection('Дегельминтизация', 'deworming')}
+            {renderSection('Клещи', 'ticks')}
             {renderSection('Болезни и операции', 'illnesses')}
             {renderSection('Аллергии', 'allergies')}
           </ScrollView>

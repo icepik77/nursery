@@ -1,7 +1,5 @@
 import BottomMenu from "@/components/BottomMenu";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker"; // ✅ добавили Picker
-import { format } from "date-fns";
 import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
@@ -80,8 +78,11 @@ export default function MainScreen() {
                     key={tab}
                     style={styles.tabButton}
                     onPress={() => {
-                      if (tab === "График") {
-                        router.push("/calendar");
+                      if (tab ==="График"){
+                        router.push({
+                          pathname: "../events/[id]",
+                          params: { id: selectedPetId}
+                        });
                       }
                       if (tab === "Документы") {
                         router.push(`/animal/${selectedPetId}/documents`);
@@ -143,64 +144,70 @@ export default function MainScreen() {
 
                   {/* Остальные поля */}
                   {[
-                    ["Кличка", "name"],
-                    ["Пол", "gender"],
-                    ["Дата рождения", "birthdate"],
-                    ["Номер чипа", "chip"],
-                    ["Порода", "breed"],
-                    ["Вес", "weight"],
-                    ["Рост в холке", "height"],
-                    ["Окрас", "color"],
-                    ["Примечание", "note"],
-                  ].map(([label, name]) => (
-                    <View key={name} style={styles.inputGroup}>
-                      <Text style={styles.label}>{label}</Text>
-
-                      {name === "birthdate" ? (
-                        <>
-                          <TouchableOpacity
-                            onPress={() => setShowDatePicker(true)}
-                            style={[styles.input, { justifyContent: "center" }]}
-                          >
-                            <Text>
-                              {formData.birthdate
-                                ? format(new Date(formData.birthdate), "yyyy-MM-dd")
-                                : "Выберите дату"}
-                            </Text>
-                          </TouchableOpacity>
-
-                          {showDatePicker && (
-                            <DateTimePicker
-                              value={
-                                formData.birthdate
-                                  ? new Date(formData.birthdate)
-                                  : new Date()
-                              }
-                              mode="date"
-                              display="default"
-                              onChange={(event, selectedDate) => {
-                                setShowDatePicker(false);
-                                if (selectedDate) {
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    birthdate: format(selectedDate, "yyyy-MM-dd"),
-                                  }));
-                                }
-                              }}
-                            />
-                          )}
-                        </>
-                      ) : (
-                        <TextInput
-                          style={styles.input}
-                          value={formData[name as keyof typeof formData] || ""}
-                          onChangeText={(text) =>
-                            setFormData((prev) => ({ ...prev, [name]: text }))
-                          }
-                        />
-                      )}
-                    </View>
-                  ))}
+  { label: "Кличка", name: "name" },
+  { label: "Кличка по паспорту", name: "pasportName" }, // Новый инпут
+  {
+    label: "Пол",
+    name: "gender",
+    customInput: (
+      <View style={styles.pickerWrapper}>
+        <Picker
+          selectedValue={formData.gender || ""}
+          onValueChange={(value) =>
+            setFormData((prev) => ({ ...prev, gender: value }))
+          }
+        >
+          <Picker.Item label="Выберите пол" value="" />
+          <Picker.Item label="Мужской" value="мужской" />
+          <Picker.Item label="Женский" value="женский" />
+        </Picker>
+      </View>
+    ),
+  },
+  {
+    label: "Дата рождения",
+    name: "birthdate",
+  },
+  {
+    label: "Номер чипа",
+    name: "chip",
+  },
+  {
+    label: "Порода",
+    name: "breed",
+  },
+  {
+    label: "Вес",
+    name: "weight",
+  },
+  {
+    label: "Рост в холке",
+    name: "height",
+  },
+  {
+    label: "Окрас",
+    name: "color",
+  },
+  {
+    label: "Примечание",
+    name: "note",
+  },
+].map(({ label, name, customInput }) => (
+  <View key={name} style={styles.inputGroup}>
+    <Text style={styles.label}>{label}</Text>
+    {customInput ? (
+      customInput
+    ) : (
+      <TextInput
+        style={styles.input}
+        value={formData[name as keyof typeof formData] || ""}
+        onChangeText={(text) =>
+          setFormData((prev) => ({ ...prev, [name]: text }))
+        }
+      />
+    )}
+  </View>
+))}
                 </View>
               </View>
             </View>
