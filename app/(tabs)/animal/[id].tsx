@@ -187,9 +187,46 @@ export default function MainScreen() {
                     </Picker>
                   </View>
                 </View>
+                {/* Кличка */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Кличка</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.name || ""}
+                    onChangeText={(text) =>
+                      setFormData((prev) => ({ ...prev, name: text }))
+                    }
+                  />
+                </View>
+                {/* Кличка по паспорту */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Кличка по паспорту</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.pasportName || ""}
+                    onChangeText={(text) =>
+                      setFormData((prev) => ({ ...prev, pasportName: text }))
+                    }
+                  />
+                </View>
+                {/* Пол */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Пол</Text>
+                  <View style={styles.pickerWrapper}>
+                    <Picker
+                      selectedValue={formData.gender || ""}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({ ...prev, gender: value }))
+                      }
+                    >
+                      <Picker.Item label="Выберите пол" value="" />
+                      <Picker.Item label="Мужской" value="мужской" />
+                      <Picker.Item label="Женский" value="женский" />
+                    </Picker>
+                  </View>
+                </View>
+                {/* Остальные поля */}
                 {[
-                  ["Кличка", "name"],
-                  ["Пол", "gender"],
                   ["Дата рождения", "birthdate"],
                   ["Номер чипа", "chip"],
                   ["Порода", "breed"],
@@ -202,7 +239,7 @@ export default function MainScreen() {
                     <Text style={styles.label}>{label}</Text>
                     <TextInput
                       style={styles.input}
-                      value={formData[name as keyof typeof formData]}
+                      value={formData[name as keyof typeof formData] || ""}
                       onChangeText={(text) =>
                         setFormData((prev) => ({ ...prev, [name]: text }))
                       }
