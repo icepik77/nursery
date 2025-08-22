@@ -15,6 +15,8 @@ import {
 } from "react-native";
 import { usePetContext } from "./context/formContext";
 
+//Начинаю ауф
+
 type ControlsBarProps = {
   filter: "all" | "домашние питомцы" | "крупные животные" | "птицы" | "мелкие животные";
   setFilter: React.Dispatch<
