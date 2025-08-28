@@ -1,36 +1,72 @@
 // screens/LoginScreen.tsx
-import { signIn, signInWithGoogle, signUp } from "@/utils/utils"; // добавь метод входа через Google
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("icepik77@mail.ru");
   const [password, setPassword] = useState("Dark1271");
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleLogin = async () => {
+    setError("");
     try {
-      await signIn(email, password);
+      const res = await fetch("http://83.166.244.36:3000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || data.message || "Login failed");
+      }
+
+      // Сохраняем токен
+      await AsyncStorage.setItem("token", data.token);
+      router.replace("/");
+
+      // Можно сразу перейти на экран профиля
+      // navigation.navigate("Home"); 
     } catch (err: any) {
       setError(err.message);
     }
   };
 
   const handleRegister = async () => {
+    setError("");
     try {
-      await signUp(email, password);
+      const res = await fetch("http://83.166.244.36:3000/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        throw new Error(data?.error || data?.message || "Registration failed");
+      }
+
+      console.log("User registered:", data);
+
+      if (!data || !data.token) {
+        throw new Error("No token received from server");
+      }
+
+      // Вариант 1: сразу логинить пользователя
+      await AsyncStorage.setItem("token", data.token);
+      router.replace("/");
+
     } catch (err: any) {
+      console.error("Register error:", err.message);
       setError(err.message);
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      await signInWithGoogle();
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
 
   return (
     <View style={styles.container}>
@@ -44,6 +80,7 @@ export default function LoginScreen() {
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
+        autoCapitalize="none"
       />
       <TextInput
         style={styles.input}
@@ -62,20 +99,6 @@ export default function LoginScreen() {
 
       <TouchableOpacity style={[styles.button, styles.registerButton]} onPress={handleRegister}>
         <Text style={styles.registerText}>Register</Text>
-      </TouchableOpacity>
-
-      <View style={styles.divider}>
-        <View style={styles.line} />
-        <Text style={styles.dividerText}>OR</Text>
-        <View style={styles.line} />
-      </View>
-
-      <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin}>
-        <Image
-          source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/4/4e/Google_%22G%22_Logo.svg" }}
-          style={styles.googleIcon}
-        />
-        <Text style={styles.googleText}>Sign in with Google</Text>
       </TouchableOpacity>
     </View>
   );
@@ -134,38 +157,5 @@ const styles = StyleSheet.create({
     color: "#333",
     fontSize: 16,
     fontWeight: "bold",
-  },
-  divider: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 20,
-  },
-  line: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "#ccc",
-  },
-  dividerText: {
-    marginHorizontal: 10,
-    color: "#999",
-  },
-  googleButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 12,
-    paddingVertical: 12,
-    justifyContent: "center",
-  },
-  googleIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 10,
-  },
-  googleText: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#333",
   },
 });

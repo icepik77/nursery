@@ -73,7 +73,6 @@ export default function HomeScreen() {
           <View style={styles.header}>
             <Text style={styles.headerText}>Главная</Text>
 
-            {/* ControlsBar теперь принимает setFilter и setSortAZ */}
             <ControlsBar
               filter={filter}
               setFilter={setFilter}
@@ -86,6 +85,14 @@ export default function HomeScreen() {
               onPress={() => router.push("/animal/createAnimal")}
             >
               <Text style={styles.addButtonText}>Добавить питомца</Text>
+            </TouchableOpacity>
+
+            {/* Кнопка для перехода на страницу логина */}
+            <TouchableOpacity
+              style={styles.loginButton}
+              onPress={() => router.push("/login")}
+            >
+              <Text style={styles.loginButtonText}>Войти</Text>
             </TouchableOpacity>
           </View>
 
@@ -131,4 +138,18 @@ const styles = StyleSheet.create({
   },
   addButtonText: { color: "white", fontSize: 18, fontWeight: "600" },
   cardsContainer: { paddingBottom: 100, gap: 2 },
+  loginButton: {
+    backgroundColor: "#fff",
+    borderColor: "#00796b",
+    borderWidth: 2,
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  loginButtonText: {
+    color: "#00796b",
+    fontSize: 18,
+    fontWeight: "600",
+  },
 });
