@@ -18,8 +18,39 @@ export default function BottomMenu() {
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom + 10 }]}>
-      {tabs.map(({ icon, route }) => {
+      {tabs.map(({ icon, route }, index) => {
         const isActive = pathname === route;
+
+        // вставляем чат по центру после второй кнопки
+        if (index === 2) {
+          return (
+            <React.Fragment key={route}>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => router.push("/chat")}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name="chatbubble-ellipses-outline"
+                  size={36}
+                  color={pathname === "/chat" ? "#041029" : "gray"}
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => router.push(route)}
+                style={styles.button}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name={icon}
+                  size={28}
+                  color={isActive ? "#041029" : "gray"}
+                />
+              </TouchableOpacity>
+            </React.Fragment>
+          );
+        }
 
         return (
           <TouchableOpacity
@@ -54,13 +85,10 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
 
-    // тень для iOS
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-
-    // тень для Android
     elevation: 10,
   },
   button: {

@@ -61,6 +61,7 @@ interface PetContextType {
   formData: PetForm;
   setFormData: React.Dispatch<React.SetStateAction<PetForm>>;
   addPet: () => Promise<void>;
+  updatePet: (id: string, updatedData: Partial<PetForm>) => Promise<void>; // ← добавлено
   addEvent: (petId: string, event: PetEvent) => void;
   removePet: (id: string) => Promise<void>;
   updateEvent: (petId: string, index: number, updatedEvent: PetEvent) => void;
@@ -82,6 +83,7 @@ interface PetContextType {
   updateMedical: (id: string, data: Partial<PetMedical>) => Promise<void>;
   deleteMedical: (id: string) => Promise<void>;
 }
+
 
 export type MedicalCategory = 'vaccination' | 'treatment' | 'surgery' | 'other';
 
@@ -117,7 +119,7 @@ export const PetProvider = ({ children }: PetProviderProps) => {
       const token = await AsyncStorage.getItem("token");
       console.log("user", user); 
       if (!token || !user) {
-        console.error("Нет токена → пользователь не авторизован");
+        // console.error("Нет токена → пользователь не авторизован");
         return;
       }
 
@@ -198,6 +200,45 @@ export const PetProvider = ({ children }: PetProviderProps) => {
       }
     }
   };
+
+  const updatePet = async (id: string, updatedData: Partial<PetForm>) => {
+  if (!user) {
+    console.error("Пользователь не авторизован");
+    return;
+  }
+
+  try {
+    const token = await AsyncStorage.getItem("token");
+    if (!token) throw new Error("Нет токена");
+
+    // PUT-запрос для обновления питомца
+    const res = await axios.put(
+      `http://83.166.244.36:3000/api/pets/${id}`,
+      updatedData,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    console.log("Питомец обновлён:", res.data);
+
+    // Обновляем локальный список питомцев
+    setPets((prevPets) =>
+      prevPets.map((pet) => (pet.id === id ? { ...pet, ...res.data } : pet))
+    );
+
+    // Если обновляется выбранный питомец — обновляем форму
+    if (selectedPetId === id) {
+      setFormData((prev) => ({ ...prev, ...res.data }));
+    }
+  } catch (err: any) {
+    if (err.response) {
+      console.error("Ошибка сервера:", err.response.data);
+    } else {
+      console.error("Ошибка обновления питомца:", err.message);
+    }
+  }
+};
 
   const removePet = async (id: string) => {
     try {
@@ -467,6 +508,7 @@ export const PetProvider = ({ children }: PetProviderProps) => {
         formData,
         setFormData,
         addPet,
+        updatePet,
         addEvent,
         removePet,
         updateEvent,

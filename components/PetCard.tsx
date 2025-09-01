@@ -92,9 +92,9 @@ export default function PetCard({ id, name, age = '1', breed, imageUrl, gender, 
         >
           <Pressable style={styles.modalOverlay} onPress={() => setMenuOpen(false)}>
             <View style={styles.menuContainer}>
-              <TouchableOpacity style={styles.menuItem} onPress={handleEdit}>
+              {/* <TouchableOpacity style={styles.menuItem} onPress={handleEdit}>
                 <Text>✏️ Изменить</Text>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
               <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
                 <Text style={{ color: "red" }}>🗑️ Удалить</Text>
               </TouchableOpacity>

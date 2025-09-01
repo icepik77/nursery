@@ -45,6 +45,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const setUserAndToken = async (newUser: User, newToken: string) => {
     setUser(newUser);
     setToken(newToken);
+    console.log("newUser", newUser); 
     await AsyncStorage.setItem("token", newToken);
     await AsyncStorage.setItem("user", JSON.stringify(newUser));
   };

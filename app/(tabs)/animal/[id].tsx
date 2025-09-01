@@ -19,8 +19,10 @@ import {
 
 
 import BottomMenu from "@/components/BottomMenu";
-import { Pet, usePetContext } from "../context/formContext";
+import { usePetContext } from "../context/formContext";
 
+
+//Это страница редактирования
 // const TABS = ["Профиль", "Вет. паспорт", "Документы", "События", "Заметки", "Календарь"];
 const TABS = ["Медицина", "Документы", "Заметки", "График"];
 
@@ -28,7 +30,7 @@ export default function MainScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [eventTitle, setEventTitle] = useState("");
   const [eventDate, setEventDate] = useState("");
-  const { selectedPetId, setSelectedPetId, addEvent, formData, setFormData, addPet, pets, setPets} = usePetContext();
+  const { selectedPetId, setSelectedPetId, addEvent, formData, setFormData, addPet, updatePet, pets, setPets} = usePetContext();
 
   const router = useRouter(); 
   const {id} = useLocalSearchParams();
@@ -74,13 +76,13 @@ export default function MainScreen() {
     };
   };
 
-  const updatePet = (id: string, updatedData: Partial<Pet>) => {
-    setPets((prevPets) =>
-      prevPets.map((pet) =>
-        pet.id === id ? { ...pet, ...updatedData } : pet
-      )
-    );
-  };
+  // const updatePet = (id: string, updatedData: Partial<Pet>) => {
+  //   setPets((prevPets) =>
+  //     prevPets.map((pet) =>
+  //       pet.id === id ? { ...pet, ...updatedData } : pet
+  //     )
+  //   );
+  // };
 
   const handleSubmit = () => {
     const petId = Array.isArray(id) ? id[0] : id;
@@ -164,7 +166,7 @@ export default function MainScreen() {
                   )}
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.publishButton} onPress={handleSubmit}>
-                  <Text style={styles.publishButtonText}>Опубликовать</Text>
+                  <Text style={styles.publishButtonText}>Сохранить</Text>
                 </TouchableOpacity>
               </View>
 
