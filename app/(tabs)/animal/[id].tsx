@@ -40,6 +40,7 @@ export default function MainScreen() {
       setFormData(petToEdit);
       setImageUri(petToEdit.imageUri || null );
       setSelectedPetId(petToEdit.id);
+      console.log("selectedPetId", selectedPetId); 
     }
   }, [id]);
 

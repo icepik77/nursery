@@ -1,14 +1,15 @@
 // screens/LoginScreen.tsx
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useAuth } from "./context/authContext";
 
 export default function LoginScreen() {
+  const { setUserAndToken } = useAuth();
+  const router = useRouter();
   const [email, setEmail] = useState("icepik77@mail.ru");
   const [password, setPassword] = useState("Dark1271");
   const [error, setError] = useState("");
-  const router = useRouter();
 
   const handleLogin = async () => {
     setError("");
@@ -21,16 +22,15 @@ export default function LoginScreen() {
 
       const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data.error || data.message || "Login failed");
+      if (!res.ok) throw new Error(data.error || data.message || "Login failed");
+
+      if (!data.user || !data.token) {
+        throw new Error("Invalid response: no user or token");
       }
 
-      // Сохраняем токен
-      await AsyncStorage.setItem("token", data.token);
-      router.replace("/");
+      await setUserAndToken(data.user, data.token);
 
-      // Можно сразу перейти на экран профиля
-      // navigation.navigate("Home"); 
+      router.replace("/");
     } catch (err: any) {
       setError(err.message);
     }
@@ -45,24 +45,18 @@ export default function LoginScreen() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json().catch(() => null);
+      const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data?.error || data?.message || "Registration failed");
+      if (!res.ok) throw new Error(data.error || data.message || "Registration failed");
+
+      if (!data.user || !data.token) {
+        throw new Error("Invalid response: no user or token");
       }
 
-      console.log("User registered:", data);
+      await setUserAndToken(data.user, data.token);
 
-      if (!data || !data.token) {
-        throw new Error("No token received from server");
-      }
-
-      // Вариант 1: сразу логинить пользователя
-      await AsyncStorage.setItem("token", data.token);
       router.replace("/");
-
     } catch (err: any) {
-      console.error("Register error:", err.message);
       setError(err.message);
     }
   };
@@ -159,3 +153,4 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+

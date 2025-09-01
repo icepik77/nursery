@@ -1,6 +1,3 @@
-import BottomMenu from "@/components/BottomMenu";
-import ControlsBar from "@/components/ControlsBar";
-import PetCard from "@/components/PetCard";
 import { Link, useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
@@ -15,22 +12,14 @@ import {
 } from "react-native";
 import { usePetContext } from "./context/formContext";
 
-//Начинаю ауф
-
-type ControlsBarProps = {
-  filter: "all" | "домашние питомцы" | "крупные животные" | "птицы" | "мелкие животные";
-  setFilter: React.Dispatch<
-    React.SetStateAction<
-      "all" | "домашние питомцы" | "крупные животные" | "птицы" | "мелкие животные"
-    >
-  >;
-  sortAZ: boolean;
-  setSortAZ: React.Dispatch<React.SetStateAction<boolean>>;
-};
-
 export default function HomeScreen() {
   const router = useRouter();
   const { pets } = usePetContext();
+
+  // Импортируем компоненты только при рендере
+  const BottomMenu = require("@/components/BottomMenu").default;
+  const ControlsBar = require("@/components/ControlsBar").default;
+  const PetCard = require("@/components/PetCard").default;
 
   // состояние фильтра и сортировки
   const [filter, setFilter] = useState<
@@ -45,19 +34,14 @@ export default function HomeScreen() {
 
     // фильтрация
     if (filter !== "all") {
-      result = result.filter((pet) => {
-        const category = pet.category ?? "";
-        return category === filter;
-      });
+      result = result.filter((pet) => (pet.category ?? "") === filter);
     }
-
 
     // сортировка
     result.sort((a, b) => {
       const nameA = (a.name ?? "").toLowerCase();
       const nameB = (b.name ?? "").toLowerCase();
-      if (sortAZ) return nameA.localeCompare(nameB);
-      return nameB.localeCompare(nameA);
+      return sortAZ ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
     });
 
     return result;
@@ -85,14 +69,6 @@ export default function HomeScreen() {
               onPress={() => router.push("/animal/createAnimal")}
             >
               <Text style={styles.addButtonText}>Добавить питомца</Text>
-            </TouchableOpacity>
-
-            {/* Кнопка для перехода на страницу логина */}
-            <TouchableOpacity
-              style={styles.loginButton}
-              onPress={() => router.push("/login")}
-            >
-              <Text style={styles.loginButtonText}>Войти</Text>
             </TouchableOpacity>
           </View>
 
@@ -138,18 +114,4 @@ const styles = StyleSheet.create({
   },
   addButtonText: { color: "white", fontSize: 18, fontWeight: "600" },
   cardsContainer: { paddingBottom: 100, gap: 2 },
-  loginButton: {
-    backgroundColor: "#fff",
-    borderColor: "#00796b",
-    borderWidth: 2,
-    paddingVertical: 10,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    marginTop: 8,
-  },
-  loginButtonText: {
-    color: "#00796b",
-    fontSize: 18,
-    fontWeight: "600",
-  },
 });

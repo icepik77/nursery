@@ -1,6 +1,6 @@
 import BottomMenu from '@/components/BottomMenu';
 import { MaterialIcons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Modal,
@@ -13,59 +13,51 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-
-type Note = {
-  id: string;
-  text: string;
-  createdAt: Date;
-};
+import { usePetContext } from '../../context/formContext';
 
 export default function PetNotesScreen() {
-  const [notes, setNotes] = useState<Note[]>([]);
+  const { selectedPetId, notes, fetchNotes, addNote, updateNote, deleteNote } = usePetContext();
   const [modalVisible, setModalVisible] = useState(false);
   const [noteText, setNoteText] = useState('');
-  const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (selectedPetId) {
+      fetchNotes(selectedPetId);
+    }
+  }, [selectedPetId]);
 
   const openAddModal = () => {
     setNoteText('');
-    setEditingNote(null);
+    setEditingNoteId(null);
     setModalVisible(true);
   };
 
-  const openEditModal = (note: Note) => {
-    setNoteText(note.text);
-    setEditingNote(note);
+  const openEditModal = (noteId: string, text: string) => {
+    setNoteText(text);
+    setEditingNoteId(noteId);
     setModalVisible(true);
   };
 
-  const saveNote = () => {
-    if (noteText.trim() === '') return;
+  const saveNote = async () => {
+    if (!selectedPetId || noteText.trim() === '') return;
 
-    if (editingNote) {
-      // обновляем заметку
-      setNotes(prev =>
-        prev.map(n => (n.id === editingNote.id ? { ...n, text: noteText } : n))
-      );
+    if (editingNoteId) {
+      await updateNote(editingNoteId, noteText.trim());
     } else {
-      // создаём новую
-      const newNote: Note = {
-        id: Date.now().toString(),
-        text: noteText.trim(),
-        createdAt: new Date(),
-      };
-      setNotes(prev => [newNote, ...prev]);
+      await addNote(selectedPetId, noteText.trim());
     }
 
     setModalVisible(false);
-    setEditingNote(null);
+    setEditingNoteId(null);
     setNoteText('');
   };
 
-  const deleteNote = () => {
-    if (!editingNote) return;
-    setNotes(prev => prev.filter(n => n.id !== editingNote.id));
+  const removeNote = async () => {
+    if (!editingNoteId) return;
+    await deleteNote(editingNoteId);
     setModalVisible(false);
-    setEditingNote(null);
+    setEditingNoteId(null);
   };
 
   return (
@@ -84,28 +76,27 @@ export default function PetNotesScreen() {
                 <TouchableOpacity
                   key={note.id}
                   style={styles.noteCard}
-                  onPress={() => openEditModal(note)}
+                  onPress={() => openEditModal(note.id, note.content)}
                 >
-                  <Text style={styles.noteText}>{note.text}</Text>
+                  <Text style={styles.noteText}>{note.content}</Text>
                   <Text style={styles.noteDate}>
-                    {note.createdAt.toLocaleDateString()} {note.createdAt.toLocaleTimeString()}
+                    {new Date(note.created_at).toLocaleDateString()}{' '}
+                    {new Date(note.created_at).toLocaleTimeString()}
                   </Text>
                 </TouchableOpacity>
               ))
             )}
           </ScrollView>
 
-          {/* кнопка добавить */}
           <TouchableOpacity style={styles.fab} onPress={openAddModal}>
             <MaterialIcons name="add" size={32} color="#fff" />
           </TouchableOpacity>
 
-          {/* модалка для добавления/редактирования */}
           <Modal visible={modalVisible} transparent animationType="slide">
             <View style={styles.modalOverlay}>
               <View style={styles.modalContent}>
                 <Text style={styles.modalTitle}>
-                  {editingNote ? 'Редактировать заметку' : 'Новая заметка'}
+                  {editingNoteId ? 'Редактировать заметку' : 'Новая заметка'}
                 </Text>
 
                 <TextInput
@@ -117,8 +108,8 @@ export default function PetNotesScreen() {
                 />
 
                 <View style={styles.modalActions}>
-                  {editingNote && (
-                    <TouchableOpacity style={styles.deleteBtn} onPress={deleteNote}>
+                  {editingNoteId && (
+                    <TouchableOpacity style={styles.deleteBtn} onPress={removeNote}>
                       <Text style={styles.deleteText}>Удалить</Text>
                     </TouchableOpacity>
                   )}
@@ -130,7 +121,7 @@ export default function PetNotesScreen() {
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.saveBtn} onPress={saveNote}>
                     <Text style={styles.saveText}>
-                      {editingNote ? 'Сохранить' : 'Добавить'}
+                      {editingNoteId ? 'Сохранить' : 'Добавить'}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -145,110 +136,22 @@ export default function PetNotesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f4f6f8',
-    padding: 20,
-    marginTop: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 24,
-    textAlign: 'center',
-    marginTop: 16,
-  },
-  emptyText: {
-    color: '#999',
-    textAlign: 'center',
-    marginTop: 50,
-    fontSize: 16,
-  },
-  noteCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  noteText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  noteDate: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 6,
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 100,
-    right: 20,
-    backgroundColor: '#00796b',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 5,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 15,
-  },
-  input: {
-    backgroundColor: '#f0f0f0',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    marginTop: 10,
-    fontSize: 16,
-  },
-  modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 15,
-  },
-  cancelBtn: {
-    marginRight: 10,
-    marginTop: 8,
-  },
-  cancelText: {
-    color: '#999',
-    fontSize: 16,
-  },
-  saveBtn: {
-    backgroundColor: '#00796b',
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-  },
-  saveText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  deleteBtn: {
-    marginRight: 'auto',
-    marginTop: 10,
-  },
-  deleteText: {
-    color: '#d32f2f',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  container: { flex: 1, backgroundColor: '#f4f6f8', padding: 20, marginTop: 20 },
+  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 24, textAlign: 'center', marginTop: 16 },
+  emptyText: { color: '#999', textAlign: 'center', marginTop: 50, fontSize: 16 },
+  noteCard: { backgroundColor: '#fff', borderRadius: 12, padding: 15, marginBottom: 12, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
+  noteText: { fontSize: 16, color: '#333' },
+  noteDate: { fontSize: 12, color: '#666', marginTop: 6 },
+  fab: { position: 'absolute', bottom: 100, right: 20, backgroundColor: '#00796b', width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', elevation: 5 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', padding: 20 },
+  modalContent: { backgroundColor: '#fff', borderRadius: 12, padding: 20 },
+  modalTitle: { fontSize: 18, fontWeight: '700', marginBottom: 15 },
+  input: { backgroundColor: '#f0f0f0', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8, marginTop: 10, fontSize: 16 },
+  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 15 },
+  cancelBtn: { marginRight: 10, marginTop: 8 },
+  cancelText: { color: '#999', fontSize: 16 },
+  saveBtn: { backgroundColor: '#00796b', borderRadius: 8, paddingHorizontal: 15, paddingVertical: 8 },
+  saveText: { color: '#fff', fontSize: 16 },
+  deleteBtn: { marginRight: 'auto', marginTop: 10 },
+  deleteText: { color: '#d32f2f', fontSize: 16, fontWeight: '600' },
 });

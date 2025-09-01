@@ -1,4 +1,8 @@
-import React, { createContext, ReactNode, useContext, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import { useAuth, User } from "./authContext";
+
 
 // Тип для одного питомца
 export type Pet = {
@@ -15,16 +19,36 @@ export type Pet = {
   imageUri?: string;
   bigNote?: string;
   category?: string;
-  pasportName?: string; // ✅ добавили поле для паспортного имени
+  pasportName?: string;
 };
 
-// Тип формы без id
 export type PetForm = Omit<Pet, "id">;
 
-// Тип одного события
 export type PetEvent = {
   title: string;
   date: string;
+};
+
+export type Note = {
+  id: string;
+  pet_id: string;
+  title: string;
+  content: string;
+  category: string;
+  created_at: string;
+  updated_at?: string;
+};
+
+// Тип файла
+export type PetFile = {
+  id: string;
+  pet_id: string;
+  name: string;
+  uri: string;
+  type?: string;  // MIME type
+  size?: number;
+  created_at: string;
+  updated_at?: string;
 };
 
 interface PetContextType {
@@ -37,13 +61,40 @@ interface PetContextType {
   allEvents: Record<string, PetEvent[]>;
   formData: PetForm;
   setFormData: React.Dispatch<React.SetStateAction<PetForm>>;
-  addPet: () => void;
+  addPet: () => Promise<void>;
   addEvent: (petId: string, event: PetEvent) => void;
-  removePet: (id: string) => void;
+  removePet: (id: string) => Promise<void>;
   updateEvent: (petId: string, index: number, updatedEvent: PetEvent) => void;
   deleteEvent: (petId: string, index: number) => void;
-  user: { id: string; name: string } | null;
+  user: User | null;
+  notes: Note[];
+  fetchNotes: (petId: string) => Promise<void>;
+  addNote: (petId: string, text: string) => Promise<void>;
+  updateNote: (noteId: string, text: string) => Promise<void>;
+  deleteNote: (noteId: string) => Promise<void>;
+  files: PetFile[];
+  fetchFiles: (petId: string) => Promise<void>;
+  addFile: (petId: string, file: { name: string; uri: string; type?: string; size?: number }) => Promise<void>;
+  updateFile: (fileId: string, updatedData: Partial<PetFile>) => Promise<void>;
+  deleteFile: (fileId: string) => Promise<void>;
+  medical: PetMedical[];
+  fetchMedical: (petId: string) => Promise<void>;
+  addMedical: (petId: string, data: { title: string; content?: string; category?: string }) => Promise<void>;
+  updateMedical: (id: string, data: Partial<PetMedical>) => Promise<void>;
+  deleteMedical: (id: string) => Promise<void>;
 }
+
+export type MedicalCategory = 'vaccination' | 'treatment' | 'surgery' | 'other';
+
+export type PetMedical = {
+  id: string;
+  pet_id: string;
+  title: string;
+  content?: string;
+  created_at: string;
+  updated_at?: string;
+  category: MedicalCategory;
+};
 
 const PetContext = createContext<PetContextType | null>(null);
 
@@ -51,214 +102,131 @@ interface PetProviderProps {
   children: ReactNode;
 }
 
-// Моковый пользователь
-const mockUser = { id: "u1", name: "Тестовый пользователь" };
-
-// Моковые питомцы
-const mockPets: Pet[] = [
-  // 🐱 Домашние питомцы
-  {
-    id: "1",
-    name: "Барсик",
-    pasportName: "Барсик Барсович",
-    gender: "мужской",
-    birthdate: "2019-05-12",
-    chip: "001234567",
-    breed: "сибирская",
-    weight: "6",
-    height: "28",
-    color: "серый",
-    note: "любит лазать по шкафам",
-    category: "домашние питомцы",
-  },
-  {
-    id: "2",
-    name: "Мурка",
-    pasportName: "Мурка Муркина",
-    gender: "женский",
-    birthdate: "2021-08-03",
-    chip: "009876543",
-    breed: "британская",
-    weight: "4",
-    height: "25",
-    color: "голубой",
-    note: "очень ласковая",
-    category: "домашние питомцы",
-  },
-  {
-    id: "3",
-    name: "Рекс",
-    pasportName: "Рекс Рексович",
-    gender: "мужской",
-    birthdate: "2020-02-20",
-    chip: "002345678",
-    breed: "немецкая овчарка",
-    weight: "32",
-    height: "60",
-    color: "черный с рыжим",
-    note: "служебная собака",
-    category: "домашние питомцы",
-  },
-  {
-    id: "4",
-    name: "Лаки",
-    pasportName: "Лаки Лакина",
-    gender: "женский",
-    birthdate: "2022-06-14",
-    chip: "004567890",
-    breed: "йоркширский терьер",
-    weight: "3",
-    height: "23",
-    color: "золотистый",
-    note: "боится громких звуков",
-    category: "домашние питомцы",
-  },
-
-  // 🐴 Крупные животные
-  {
-    id: "11",
-    name: "Гроза",
-    pasportName: "Гроза Грозович",
-    gender: "мужской",
-    birthdate: "2016-04-01",
-    chip: "100123456",
-    breed: "рысак",
-    weight: "450",
-    height: "165",
-    color: "вороная",
-    note: "быстрый бегун",
-    category: "крупные животные",
-  },
-  {
-    id: "12",
-    name: "Зорька",
-    pasportName: "Зорька Зорькина",
-    gender: "женский",
-    birthdate: "2018-07-21",
-    chip: "100987654",
-    breed: "айрширская корова",
-    weight: "550",
-    height: "140",
-    color: "рыже-белая",
-    note: "дает много молока",
-    category: "крупные животные",
-  },
-
-  // 🕊 Птицы
-  {
-    id: "21",
-    name: "Кеша",
-    pasportName: "Кеша Кешин",
-    gender: "мужской",
-    birthdate: "2022-03-11",
-    chip: "200123456",
-    breed: "волнистый попугай",
-    weight: "0.05",
-    height: "18",
-    color: "зелёный",
-    note: "повторяет слова",
-    category: "птицы",
-  },
-  {
-    id: "22",
-    name: "Снежинка",
-    pasportName: "Снежинка Снежинкина",
-    gender: "женский",
-    birthdate: "2021-12-30",
-    chip: "200987654",
-    breed: "канарейка",
-    weight: "0.02",
-    height: "15",
-    color: "жёлтый",
-    note: "поёт по утрам",
-    category: "птицы",
-  },
-
-  // 🐹 Мелкие животные
-  {
-    id: "27",
-    name: "Шуша",
-    pasportName: "Шуша Шушина",
-    gender: "женский",
-    birthdate: "2023-05-05",
-    chip: "300123456",
-    breed: "шиншилла",
-    weight: "0.6",
-    height: "20",
-    color: "серебристый",
-    note: "очень пушистая",
-    category: "мелкие животные",
-  },
-  {
-    id: "28",
-    name: "Пухлик",
-    pasportName: "Пухлик Пухликович",
-    gender: "мужской",
-    birthdate: "2023-09-09",
-    chip: "300987654",
-    breed: "хомяк",
-    weight: "0.1",
-    height: "8",
-    color: "белый",
-    note: "любит бегать в колесе",
-    category: "мелкие животные",
-  },
-];
-
-
 export const PetProvider = ({ children }: PetProviderProps) => {
-  const [pets, setPets] = useState<Pet[]>(mockPets);
-  const [selectedPetId, setSelectedPetId] = useState<string | null>(mockPets[0]?.id || null);
-  const [user] = useState(mockUser);
+  const [pets, setPets] = useState<Pet[]>([]);
+  const [selectedPetId, setSelectedPetId] = useState<string | null>(null);
+  const {user} = useAuth();
 
-  const { id, ...firstPetForm } = mockPets[0] || {};
-  const [formData, setFormData] = useState<PetForm>(firstPetForm);
-
+  const [formData, setFormData] = useState<PetForm>({});
   const [events, setEvents] = useState<Record<string, PetEvent[]>>({});
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [files, setFiles] = useState<PetFile[]>([]);
+  const [medical, setMedical] = useState<PetMedical[]>([]);
 
-  const addPet = () => {
-    if (!formData.name) return;
+  const fetchPets = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      console.log("user", user); 
+      if (!token || !user) {
+        console.error("Нет токена → пользователь не авторизован");
+        return;
+      }
 
-    const newPet: Pet = {
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
-      ...formData,
-    };
+      console.log("user.id", user.id); 
 
-    setPets((prev) => [...prev, newPet]);
+      const res = await axios.get(
+        `http://83.166.244.36:3000/api/pets?userId=${user.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // 👈 теперь с токеном
+          },
+        }
+      );
 
-    setFormData({
-      name: "",
-      gender: "",
-      birthdate: "",
-      chip: "",
-      breed: "",
-      weight: "",
-      height: "",
-      color: "",
-      note: "",
-      imageUri: "",
-      bigNote: "",
-      category: "", // ✅ сброс категории
-    });
+      setPets(res.data);
+      if (res.data.length > 0) {
+        setSelectedPetId(res.data[0].id);
+        setFormData(res.data[0]);
+      }
+    } catch (err) {
+      console.error("Ошибка загрузки питомцев", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchPets();
+  }, [user]);
+
+  const addPet = async () => {
+    console.log("userAddPet", user);
+    if (!user) {
+      console.error("Пользователь не авторизован");
+      return;
+    }
+    if (!formData.name) {
+      console.error("Имя питомца не указано");
+      return;
+    }
+
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Нет токена");
+
+      // POST-запрос
+      const res = await axios.post(
+        "http://83.166.244.36:3000/api/pets",
+        { ...formData, user_id: user.id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      console.log("Ответ сервера:", res.data); // ✅ вот тут ответ
+
+      // Обновляем список питомцев
+      await fetchPets();
+
+      // Сбрасываем форму
+      setFormData({
+        name: "",
+        gender: "",
+        birthdate: "",
+        chip: "",
+        breed: "",
+        weight: "",
+        height: "",
+        color: "",
+        note: "",
+        imageUri: "",
+        bigNote: "",
+        category: "",
+        pasportName: "",
+      });
+    } catch (err: any) {
+      // Если сервер вернул ошибку, покажем её
+      if (err.response) {
+        console.error("Ошибка сервера:", err.response.data);
+      } else {
+        console.error("Ошибка добавления питомца:", err.message);
+      }
+    }
+  };
+
+  const removePet = async (id: string) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Нет токена");
+
+      await axios.delete(`http://83.166.244.36:3000/api/pets/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      fetchPets();
+      setEvents((prev) => {
+        const updated = { ...prev };
+        delete updated[id];
+        return updated;
+      });
+      if (selectedPetId === id) setSelectedPetId(null);
+    } catch (err) {
+      console.error("Ошибка удаления питомца", err);
+    }
   };
 
   const addEvent = (petId: string, event: PetEvent) => {
     if (!event.title || !event.date) return;
-
     setEvents((prev) => ({
       ...prev,
       [petId]: [...(prev[petId] || []), event],
     }));
-  };
-
-  const removePet = (id: string) => {
-    setPets((prev) => prev.filter((pet) => pet.id !== id));
-    setEvents((prev) => {
-      const updated = { ...prev };
-      delete updated[id];
-      return updated;
-    });
-    if (selectedPetId === id) setSelectedPetId(null);
   };
 
   const updateEvent = (petId: string, index: number, updatedEvent: PetEvent) => {
@@ -275,6 +243,213 @@ export const PetProvider = ({ children }: PetProviderProps) => {
       updatedEvents.splice(index, 1);
       return { ...prev, [petId]: updatedEvents };
     });
+  };
+
+  // Получить все заметки для питомца
+  const fetchNotes = async (petId: string) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token || !user) return;
+
+      const res = await axios.get(`http://83.166.244.36:3000/api/notes?petId=${petId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setNotes(res.data);
+    } catch (err) {
+      console.error("Ошибка загрузки заметок", err);
+    }
+  };
+
+  // Добавить новую заметку
+  const addNote = async (petId: string, text: string) => {
+    if (!text.trim()) return;
+
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Нет токена");
+
+      const res = await axios.post(
+        "http://83.166.244.36:3000/api/notes",
+        { pet_id: petId, text },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setNotes(prev => [res.data, ...prev]);
+    } catch (err: any) {
+      console.error("Ошибка добавления заметки", err.response?.data || err.message);
+    }
+  };
+
+  // Обновить существующую заметку
+  const updateNote = async (noteId: string, text: string) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Нет токена");
+
+      const res = await axios.put(
+        `http://83.166.244.36:3000/api/notes/${noteId}`,
+        { text },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setNotes(prev => prev.map(n => (n.id === noteId ? res.data : n)));
+    } catch (err) {
+      console.error("Ошибка обновления заметки", err);
+    }
+  };
+
+  // Удалить заметку
+  const deleteNote = async (noteId: string) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Нет токена");
+
+      await axios.delete(`http://83.166.244.36:3000/api/notes/${noteId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setNotes(prev => prev.filter(n => n.id !== noteId));
+    } catch (err) {
+      console.error("Ошибка удаления заметки", err);
+    }
+  };
+
+  // Получить все файлы для питомца
+  const fetchFiles = async (petId: string) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token || !user) return;
+
+      const res = await axios.get(`http://83.166.244.36:3000/api/files?petId=${petId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setFiles(res.data);
+    } catch (err) {
+      console.error("Ошибка загрузки файлов", err);
+    }
+  };
+
+  // Добавить новый файл
+  const addFile = async (petId: string, file: { name: string; uri: string; type?: string; size?: number }) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token || !user) throw new Error("Нет токена");
+
+      const res = await axios.post(
+        "http://83.166.244.36:3000/api/files",
+        { pet_id: petId, ...file },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setFiles(prev => [res.data, ...prev]);
+    } catch (err) {
+      console.error("Ошибка добавления файла", err);
+    }
+  };
+
+  // Обновить файл
+  const updateFile = async (fileId: string, updatedData: Partial<PetFile>) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Нет токена");
+
+      const res = await axios.put(
+        `http://83.166.244.36:3000/api/files/${fileId}`,
+        updatedData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setFiles(prev => prev.map(f => (f.id === fileId ? res.data : f)));
+    } catch (err) {
+      console.error("Ошибка обновления файла", err);
+    }
+  };
+
+  // Удалить файл
+  const deleteFile = async (fileId: string) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Нет токена");
+
+      await axios.delete(`http://83.166.244.36:3000/api/files/${fileId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setFiles(prev => prev.filter(f => f.id !== fileId));
+    } catch (err) {
+      console.error("Ошибка удаления файла", err);
+    }
+  };
+
+  // Получить все записи
+  const fetchMedical = async (petId: string) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token || !user) return;
+
+      const res = await axios.get(
+        `http://83.166.244.36:3000/api/medical?petId=${petId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setMedical(res.data);
+    } catch (err) {
+      console.error("Ошибка загрузки мед. записей", err);
+    }
+  };
+
+  // Добавить новую запись
+  const addMedical = async (petId: string, data: { title: string; content?: string; category?: string }) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Нет токена");
+
+      const res = await axios.post(
+        "http://83.166.244.36:3000/api/medical",
+        { pet_id: petId, ...data },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setMedical(prev => [res.data, ...prev]);
+    } catch (err: any) {
+      console.error("Ошибка добавления мед. записи", err.response?.data || err.message);
+    }
+  };
+
+  // Обновить запись
+  const updateMedical = async (id: string, data: Partial<PetMedical>) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Нет токена");
+
+      const res = await axios.put(
+        `http://83.166.244.36:3000/api/medical/${id}`,
+        data,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setMedical(prev => prev.map(m => (m.id === id ? res.data : m)));
+    } catch (err) {
+      console.error("Ошибка обновления мед. записи", err);
+    }
+  };
+
+  // Удалить запись
+  const deleteMedical = async (id: string) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Нет токена");
+
+      await axios.delete(
+        `http://83.166.244.36:3000/api/medical/${id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setMedical(prev => prev.filter(m => m.id !== id));
+    } catch (err) {
+      console.error("Ошибка удаления мед. записи", err);
+    }
   };
 
   const selectedPet = pets.find((pet) => pet.id === selectedPetId) || null;
@@ -297,7 +472,22 @@ export const PetProvider = ({ children }: PetProviderProps) => {
         removePet,
         updateEvent,
         deleteEvent,
-        user,
+        user: user,
+        notes,
+        fetchNotes,
+        addNote,
+        updateNote,
+        deleteNote,
+        files,
+        fetchFiles,
+        addFile,
+        updateFile,
+        deleteFile,
+        medical,
+        fetchMedical,
+        addMedical,
+        updateMedical,
+        deleteMedical,
       }}
     >
       {children}

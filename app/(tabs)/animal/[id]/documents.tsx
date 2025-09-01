@@ -2,87 +2,88 @@ import BottomMenu from '@/components/BottomMenu';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { usePetContext } from '../../context/formContext';
+import { PetFile, usePetContext } from '../../context/formContext';
 
-type MockFile = {
-  name: string;
-  uri: string;
-  createdAt: Date;
-};
-
-export default function PDFUploader() {
-  const [files, setFiles] = useState<MockFile[]>([]);
-  const { selectedPetId } = usePetContext();
+export default function FileUploader() {
+  const { selectedPetId, files, fetchFiles, addFile, deleteFile } = usePetContext();
 
   useEffect(() => {
-    if (!selectedPetId) setFiles([]);
+    if (selectedPetId) {
+      fetchFiles(selectedPetId);
+    }
   }, [selectedPetId]);
 
-  const pickPDF = async () => {
+  const pickFile = async () => {
     if (!selectedPetId) {
       alert("Сначала выберите питомца");
       return;
     }
 
-    const result = await DocumentPicker.getDocumentAsync({ type: 'application/pdf' });
+    const result = await DocumentPicker.getDocumentAsync({ type: '*/*' });
 
-    if (result.canceled) {
+    if (result.type === 'success') {
+      // Теперь TypeScript точно знает, что result — DocumentPickerSuccessResult
+      const fileData = {
+        name: result.name,
+        uri: result.uri,
+        size: result.size, // может быть undefined
+      };
+
+      await addFile(selectedPetId, fileData);
+    } else {
       console.warn("Файл не выбран");
-      return;
     }
-
-    const file = result.assets[0];
-    const uri = file.uri;
-    const name = file.name || uri.split('/').pop() || 'unknown.pdf';
-
-    if (!uri) {
-      console.warn("Не удалось получить uri файла");
-      return;
-    }
-
-    setFiles(prev => [...prev, { name, uri, createdAt: new Date() }]);
   };
 
-  const sharePDF = async (uri: string) => {
+  const shareFile = async (file: PetFile) => {
     try {
       const canShare = await Sharing.isAvailableAsync();
       if (!canShare) {
         alert("Шеринг не поддерживается на этом устройстве");
         return;
       }
-      await Sharing.shareAsync(uri);
+      await Sharing.shareAsync(file.uri);
     } catch (error: any) {
       alert("Ошибка при попытке поделиться: " + error.message);
     }
+  };
+
+  const removeFile = async (fileId: string) => {
+    await deleteFile(fileId);
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Документы</Text>
       <ScrollView style={{ flex: 1 }}>
-        {files.length === 0 && <Text style={styles.noFilesText}>Файлы не выбраны</Text>}
+        {(!files || files.length === 0) && <Text style={styles.noFilesText}>Файлы не выбраны</Text>}
 
-        {files.map((file, index) => (
-          <View key={index} style={styles.card}>
-            <MaterialIcons name="picture-as-pdf" size={32} color="#e53935" style={{ marginRight: 10 }} />
+        {files.map((file) => (
+          <View key={file.id} style={styles.card}>
+            <MaterialIcons name="insert-drive-file" size={32} color="#607d8b" style={{ marginRight: 10 }} />
             <View style={styles.cardContent}>
               <Text style={styles.fileName}>{file.name}</Text>
               <Text style={styles.date}>
-                {file.createdAt.toLocaleDateString()} {file.createdAt.toLocaleTimeString()}
+                {new Date(file.created_at).toLocaleDateString()} {new Date(file.created_at).toLocaleTimeString()}
               </Text>
             </View>
-            <TouchableOpacity onPress={() => sharePDF(file.uri)} style={styles.actionButton}>
-              <MaterialIcons name="share" size={24} color="#00796b" />
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row' }}>
+              <TouchableOpacity onPress={() => shareFile(file)} style={styles.actionButton}>
+                <MaterialIcons name="share" size={24} color="#00796b" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => removeFile(file.id)} style={[styles.actionButton, { marginLeft: 8 }]}>
+                <MaterialIcons name="delete" size={24} color="#d32f2f" />
+              </TouchableOpacity>
+            </View>
           </View>
         ))}
       </ScrollView>
 
       {/* Floating Action Button */}
-      <TouchableOpacity style={styles.fab} onPress={pickPDF} activeOpacity={0.7}>
-        <MaterialIcons name="picture-as-pdf" size={28} color="#fff" />
+      <TouchableOpacity style={styles.fab} onPress={pickFile} activeOpacity={0.7}>
+        <MaterialIcons name="add" size={28} color="#fff" />
       </TouchableOpacity>
       <BottomMenu />
     </SafeAreaView>

@@ -1,74 +1,45 @@
-// context/AuthContext.tsx
+// authContext.tsx
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-interface User {
-  id: number;
+export type User = {
+  id: string;
   email: string;
-}
+};
 
-interface AuthContextProps {
+type AuthContextType = {
   user: User | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
+  loading: boolean;
+  setUserAndToken: (user: User, token: string) => Promise<void>;
   logout: () => Promise<void>;
-}
+};
 
-const AuthContext = createContext<AuthContextProps>({
-  user: null,
-  token: null,
-  login: async () => {},
-  register: async () => {},
-  logout: async () => {},
-});
+const AuthContext = createContext<AuthContextType | null>(null);
 
-export const useAuth = () => useContext(AuthContext);
-
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Restore token/user on app load
   useEffect(() => {
-    const loadAuthState = async () => {
+    const loadAuth = async () => {
       const savedToken = await AsyncStorage.getItem("token");
       const savedUser = await AsyncStorage.getItem("user");
-      if (savedToken) setToken(savedToken);
-      if (savedUser) setUser(JSON.parse(savedUser));
+      if (savedToken && savedUser) {
+        setToken(savedToken);
+        setUser(JSON.parse(savedUser));
+      }
+      setLoading(false);
     };
-    loadAuthState();
+    loadAuth();
   }, []);
 
-  const saveAuth = async (token: string, user: User) => {
-    setToken(token);
-    setUser(user);
-    await AsyncStorage.setItem("token", token);
-    await AsyncStorage.setItem("user", JSON.stringify(user));
-  };
-
-  const login = async (email: string, password: string) => {
-    const res = await fetch("http://83.166.244.36:3000/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data?.error || data?.message || "Login failed");
-    if (!data.token) throw new Error("No token received");
-    await saveAuth(data.token, data.user);
-  };
-
-  const register = async (email: string, password: string) => {
-    const res = await fetch("http://83.166.244.36:3000/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data?.error || data?.message || "Registration failed");
-    if (!data.token) throw new Error("No token received");
-    await saveAuth(data.token, data.user);
+  const setUserAndToken = async (newUser: User, newToken: string) => {
+    setUser(newUser);
+    setToken(newToken);
+    await AsyncStorage.setItem("token", newToken);
+    await AsyncStorage.setItem("user", JSON.stringify(newUser));
   };
 
   const logout = async () => {
@@ -79,8 +50,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, setUserAndToken, logout }}>
       {children}
     </AuthContext.Provider>
   );
+};
+
+export const useAuth = () => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+  return ctx;
 };
