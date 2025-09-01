@@ -76,9 +76,9 @@ export default function PetNotesScreen() {
                 <TouchableOpacity
                   key={note.id}
                   style={styles.noteCard}
-                  onPress={() => openEditModal(note.id, note.content)}
+                  onPress={() => openEditModal(note.id, note.text)}
                 >
-                  <Text style={styles.noteText}>{note.content}</Text>
+                  <Text style={styles.noteText}>{note.text}</Text>
                   <Text style={styles.noteDate}>
                     {new Date(note.created_at).toLocaleDateString()}{' '}
                     {new Date(note.created_at).toLocaleTimeString()}

@@ -32,8 +32,7 @@ export type PetEvent = {
 export type Note = {
   id: string;
   pet_id: string;
-  title: string;
-  content: string;
+  text: string;
   category: string;
   created_at: string;
   updated_at?: string;
