@@ -166,12 +166,18 @@ export const PetProvider = ({ children }: PetProviderProps) => {
 
     const form = new FormData();
 
-    // добавляем поля формы
+    // ✅ добавляем обязательные поля
+    form.append("user_id", user.id); // snake_case как в БД
+    form.append("name", formData.name || ""); // если пусто — будет хотя бы ""
+
+    // остальные поля из формы (кроме imageUri и name, чтобы не продублировать)
     Object.entries(formData).forEach(([key, value]) => {
-      if (value !== null && key !== "imageUri") form.append(key, value as any);
+      if (value !== null && key !== "imageUri" && key !== "name") {
+        form.append(key, value as any);
+      }
     });
 
-    // добавляем изображение
+    // изображение
     if (formData.imageUri) {
       const uriParts = formData.imageUri.split("/");
       const fileName = uriParts[uriParts.length - 1];
@@ -195,16 +201,21 @@ export const PetProvider = ({ children }: PetProviderProps) => {
 
       console.log("Ответ сервера:", res.data);
 
-      // ✅ сразу обновляем список питомцев
+      // ✅ обновляем список питомцев
       await fetchPets();
 
-      // можно ещё сразу выбрать нового питомца
+      // сразу выбираем нового питомца
       setSelectedPetId(res.data.id);
-      setFormData(res.data);
+
+      // можно очистить форму, а не подменять её данными из БД
     } catch (err: any) {
-      console.error("Ошибка при добавлении питомца:", err.response?.data || err.message);
+      console.error(
+        "Ошибка при добавлении питомца:",
+        err.response?.data || err.message
+      );
     }
   };
+
 
   const updatePet = async (id: string, updatedData: Partial<PetForm>) => {
   if (!user) {
