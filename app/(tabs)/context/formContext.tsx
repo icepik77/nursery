@@ -25,6 +25,7 @@ export type Pet = {
 export type PetForm = Omit<Pet, "id">;
 
 export type PetEvent = {
+  id?: string; // будет присваиваться сервером
   title: string;
   date: string;
 };
@@ -62,6 +63,7 @@ interface PetContextType {
   setFormData: React.Dispatch<React.SetStateAction<PetForm>>;
   addPet: () => Promise<void>;
   updatePet: (id: string, updatedData: Partial<PetForm>) => Promise<void>; // ← добавлено
+  fetchEvents: (petId: string) => Promise<void>;
   addEvent: (petId: string, event: PetEvent) => void;
   removePet: (id: string) => Promise<void>;
   updateEvent: (petId: string, index: number, updatedEvent: PetEvent) => void;
@@ -147,6 +149,14 @@ export const PetProvider = ({ children }: PetProviderProps) => {
   useEffect(() => {
     fetchPets();
   }, [user]);
+
+  useEffect(() => {
+    if (!pets.length) return;
+
+    pets.forEach((pet) => {
+      fetchEvents(pet.id);
+    });
+  }, [pets]);
 
   const addPet = async () => {
     console.log("userAddPet", user);
@@ -261,29 +271,111 @@ export const PetProvider = ({ children }: PetProviderProps) => {
     }
   };
 
-  const addEvent = (petId: string, event: PetEvent) => {
+  const fetchEvents = async (petId: string) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Нет токена");
+
+      const res = await axios.get(
+        `http://83.166.244.36:3000/api/events?petId=${petId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // ответ от API должен быть массивом событий [{ id, title, event_date }]
+      const formattedEvents = res.data.map((ev: any) => ({
+        id: ev.id,
+        title: ev.title,
+        date: ev.event_date, // если сервер возвращает ISO-дату, можно оставить так
+      }));
+
+      setEvents((prev) => ({
+        ...prev,
+        [petId]: formattedEvents,
+      }));
+    } catch (err: any) {
+      console.error("Ошибка загрузки событий:", err.response?.data || err.message);
+    }
+  };
+
+  // Добавляем событие и сохраняем в БД
+  const addEvent = async (petId: string, event: PetEvent) => {
     if (!event.title || !event.date) return;
-    setEvents((prev) => ({
-      ...prev,
-      [petId]: [...(prev[petId] || []), event],
-    }));
+
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Нет токена");
+
+      const res = await axios.post(
+        "http://83.166.244.36:3000/api/events",
+        {
+          petId: petId,
+          title: event.title,
+          event_date: event.date.split("T")[0], // сохраняем только дату
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // обновляем локальный стейт
+      setEvents((prev) => ({
+        ...prev,
+        [petId]: [...(prev[petId] || []), { title: res.data.title, date: res.data.event_date }],
+      }));
+    } catch (err: any) {
+      console.error("Ошибка добавления события:", err.response?.data || err.message);
+    }
   };
 
-  const updateEvent = (petId: string, index: number, updatedEvent: PetEvent) => {
-    setEvents((prev) => {
-      const updatedEvents = [...(prev[petId] || [])];
-      updatedEvents[index] = updatedEvent;
-      return { ...prev, [petId]: updatedEvents };
-    });
+  // Обновляем событие
+  const updateEvent = async (petId: string, index: number, updatedEvent: PetEvent) => {
+    const eventToUpdate = events[petId]?.[index];
+    if (!eventToUpdate) return;
+
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Нет токена");
+
+      // предполагаем, что сервер знает id события
+      // например, передаем его через индекс или сохраняем id в состоянии
+      const eventId = (eventToUpdate as any).id; // добавьте id в PetEvent для работы с БД
+      const res = await axios.put(
+        `http://83.166.244.36:3000/api/events/${eventId}`,
+        { title: updatedEvent.title, event_date: updatedEvent.date.split("T")[0] },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setEvents((prev) => {
+        const updatedEvents = [...(prev[petId] || [])];
+        updatedEvents[index] = { title: res.data.title, date: res.data.event_date };
+        return { ...prev, [petId]: updatedEvents };
+      });
+    } catch (err) {
+      console.error("Ошибка обновления события:", err);
+    }
   };
 
-  const deleteEvent = (petId: string, index: number) => {
-    setEvents((prev) => {
-      const updatedEvents = [...(prev[petId] || [])];
-      updatedEvents.splice(index, 1);
-      return { ...prev, [petId]: updatedEvents };
-    });
-  };
+  // Удаляем событие
+    const deleteEvent = async (petId: string, index: number) => {
+      const eventToDelete = events[petId]?.[index];
+      if (!eventToDelete) return;
+
+      try {
+        const token = await AsyncStorage.getItem("token");
+        if (!token) throw new Error("Нет токена");
+
+        const eventId = (eventToDelete as any).id; // также нужен id события
+        await axios.delete(`http://83.166.244.36:3000/api/events/${eventId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setEvents((prev) => {
+          const updatedEvents = [...(prev[petId] || [])];
+          updatedEvents.splice(index, 1);
+          return { ...prev, [petId]: updatedEvents };
+        });
+      } catch (err) {
+        console.error("Ошибка удаления события:", err);
+      }
+    };
 
   // Получить все заметки для питомца
   const fetchNotes = async (petId: string) => {
@@ -511,6 +603,7 @@ export const PetProvider = ({ children }: PetProviderProps) => {
         updatePet,
         addEvent,
         removePet,
+        fetchEvents,
         updateEvent,
         deleteEvent,
         user: user,

@@ -3,16 +3,16 @@ import { getSocket, initSocket } from "@/utils/socket";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    FlatList,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  FlatList,
+  Image,
+  Keyboard,
+  KeyboardEvent,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 import { useAuth } from "./context/authContext";
 
@@ -21,7 +21,12 @@ export default function ChatScreen() {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<any[]>([]);
   const [replyTo, setReplyTo] = useState<any | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchActive, setSearchActive] = useState(false);
   const flatListRef = useRef<FlatList>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  const messageIndexMap = useRef<{ [key: string]: number }>({});
 
   useEffect(() => {
     if (!user) return;
@@ -36,18 +41,33 @@ export default function ChatScreen() {
     };
   }, [user]);
 
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', (e: KeyboardEvent) => {
+      setKeyboardHeight(e.endCoordinates.height);
+    });
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
   const sendMessage = () => {
     if (!message.trim()) return;
     const socket = getSocket();
     if (!socket) return;
 
     const msg = {
+      id: new Date().getTime().toString(),
       text: message,
       username: user?.login,
       userId: user?.id,
       avatar: user?.avatar || null,
       timestamp: new Date(),
-      replyTo: replyTo ? { id: replyTo.timestamp, text: replyTo.text, username: replyTo.username } : null,
+      replyTo: replyTo ? { id: replyTo.id, text: replyTo.text, username: replyTo.username } : null,
     };
 
     socket.emit("send_message", msg);
@@ -55,7 +75,7 @@ export default function ChatScreen() {
     setReplyTo(null);
   };
 
-  const renderMessage = ({ item }: { item: any }) => {
+  const renderMessage = ({ item, index }: { item: any; index: number }) => {
     const isOwn = item.userId === user?.id;
     const avatarSource = item.avatar
       ? { uri: item.avatar }
@@ -64,6 +84,8 @@ export default function ChatScreen() {
     const myAvatarSource = user?.avatar
       ? { uri: user.avatar }
       : require("@/assets/images/avatar_man.png");
+
+    messageIndexMap.current[item.id] = index;
 
     return (
       <TouchableOpacity
@@ -76,10 +98,20 @@ export default function ChatScreen() {
           <Text style={styles.username}>{item.username || (isOwn ? user?.login : "Пользователь")}</Text>
 
           {item.replyTo && (
-            <View style={styles.replyContainer}>
+            <TouchableOpacity
+              onPress={() => {
+                const idx = messageIndexMap.current[item.replyTo.id];
+                if (idx !== undefined) {
+                  setTimeout(() => {
+                    flatListRef.current?.scrollToIndex({ index: idx, animated: true });
+                  }, 50);
+                }
+              }}
+              style={styles.replyContainer}
+            >
               <Text style={styles.replyUsername}>{item.replyTo.username}</Text>
               <Text style={styles.replyText}>{item.replyTo.text}</Text>
-            </View>
+            </TouchableOpacity>
           )}
 
           <Text style={styles.messageText}>{item.text}</Text>
@@ -90,97 +122,97 @@ export default function ChatScreen() {
     );
   };
 
+  // Фильтрация сообщений при поиске
+  const filteredMessages = searchQuery
+    ? messages.filter(
+        (m) =>
+          m.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (m.username && m.username.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+    : messages;
+
   return (
     <>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#fff", marginTop: 20 }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#fff", marginTop: 20 }}>
+        <View style={styles.header}>
           <Text style={styles.title}>Общий чат</Text>
-          <View style={{ flex: 1 }}>
-            {/* Сообщения */}
-            <FlatList
-              ref={flatListRef}
-              data={messages}
-              keyExtractor={(item) => item.timestamp.toString()}
-              renderItem={renderMessage}
-              contentContainerStyle={{ padding: 10, paddingBottom: 120 }} // отступ для поля ввода и меню
-              onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-              onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
-            />
+          <TouchableOpacity onPress={() => setSearchActive((prev) => !prev)}>
+            <Ionicons name="search" size={24} color="#00796b" />
+          </TouchableOpacity>
+        </View>
 
-            {/* Ответ на сообщение */}
-            {replyTo && (
-              <View style={styles.replyingContainer}>
-                <Text style={styles.replyingText}>Ответ на: {replyTo.text}</Text>
-                <TouchableOpacity onPress={() => setReplyTo(null)}>
-                  <Ionicons name="close" size={20} color="#333" />
-                </TouchableOpacity>
-              </View>
-            )}
+        {searchActive && (
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Поиск сообщений..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus
+          />
+        )}
 
-            {/* Поле ввода */}
-            <View style={styles.inputWrapper}>
-              <TextInput
-                value={message}
-                onChangeText={setMessage}
-                placeholder="Написать сообщение"
-                style={styles.input}
-              />
-              <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
-                <Ionicons name="send" size={24} color="#fff" />
+        <View style={{ flex: 1 }}>
+          <FlatList
+            ref={flatListRef}
+            data={filteredMessages}
+            keyExtractor={(item) => item.id}
+            renderItem={renderMessage}
+            contentContainerStyle={{ padding: 10, paddingBottom: 120 }}
+            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+            onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
+            getItemLayout={(data, index) => ({ length: 80, offset: 80 * index, index })}
+          />
+
+          {replyTo && (
+            <View style={styles.replyingContainer}>
+              <Text style={styles.replyingText}>Ответ на: {replyTo.text}</Text>
+              <TouchableOpacity onPress={() => setReplyTo(null)}>
+                <Ionicons name="close" size={20} color="#333" />
               </TouchableOpacity>
             </View>
-          </View>
-        </SafeAreaView>
-      </KeyboardAvoidingView>
+          )}
 
-      {/* Нижнее меню фиксировано снизу */}
+          <View style={[styles.inputWrapper, { marginBottom: keyboardHeight + 80 }]}>
+            <TextInput
+              value={message}
+              onChangeText={setMessage}
+              placeholder="Написать сообщение"
+              style={styles.input}
+            />
+            <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
+              <Ionicons name="send" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+
       <BottomMenu />
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  messageRow: { flexDirection: "row", alignItems: "flex-end", marginVertical: 5 },
-    title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 24,
-    textAlign: "center",
-    marginTop: 16,
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 10, marginBottom: 8 },
+  searchInput: {
+    backgroundColor: "#f0f0f0",
+    marginHorizontal: 10,
+    borderRadius: 25,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    marginBottom: 5,
   },
+  messageRow: { flexDirection: "row", alignItems: "flex-end", marginVertical: 5 },
+  title: { fontSize: 24, fontWeight: "bold", marginBottom: 0 },
   rowLeft: { justifyContent: "flex-start" },
   rowRight: { justifyContent: "flex-end" },
   avatar: { width: 36, height: 36, borderRadius: 18, marginHorizontal: 5 },
   messageContainer: { maxWidth: "70%", padding: 10, borderRadius: 15 },
-  // Сообщения других пользователей (тёмные)
   messageLeft: { backgroundColor: "#041029", borderTopLeftRadius: 0 },
-  // Свои сообщения (зелёные)
   messageRight: { backgroundColor: "#00796b", borderTopRightRadius: 0 },
   username: { fontSize: 12, color: "#fff", marginBottom: 2, fontWeight: "bold" },
   messageText: { color: "#fff" },
-  inputWrapper: {
-    flexDirection: "row",
-    padding: 10,
-    marginBottom: 80,
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderColor: "#ccc",
-    alignItems: "center",
-  },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 25,
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    marginRight: 10,
-    backgroundColor: "#f5f5f5",
-  },
+  inputWrapper: { flexDirection: "row", padding: 10, marginBottom: 80, backgroundColor: "#fff", borderTopWidth: 1, borderColor: "#ccc", alignItems: "center" },
+  input: { flex: 1, borderWidth: 1, borderColor: "#ccc", borderRadius: 25, paddingHorizontal: 15, paddingVertical: 8, marginRight: 10, backgroundColor: "#f5f5f5" },
   sendButton: { backgroundColor: "#00796b", borderRadius: 25, padding: 10 },
   replyContainer: { backgroundColor: "#555", padding: 5, borderLeftWidth: 2, borderLeftColor: "#fff", marginBottom: 5 },
   replyUsername: { fontWeight: "bold", fontSize: 11, color: "#fff" },

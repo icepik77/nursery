@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   noteTitle: { fontSize: 16, fontWeight: '600', color: '#333' },
   noteContent: { fontSize: 14, color: '#555', marginTop: 5 },
   noteDate: { fontSize: 12, color: '#999', marginTop: 10 },
-  addBtn: { position: 'absolute', bottom: 80, right: 20 },
+  addBtn: { position: 'absolute', bottom: 90, right: 20 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', padding: 20 },
   modalContent: { backgroundColor: '#fff', borderRadius: 12, padding: 20 },
   modalTitle: { fontSize: 18, fontWeight: '700', marginBottom: 15 },

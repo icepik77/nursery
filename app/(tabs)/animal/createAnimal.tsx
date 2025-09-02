@@ -1,4 +1,5 @@
 import BottomMenu from "@/components/BottomMenu";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker"; // ✅ добавили Picker
 import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
@@ -167,6 +168,38 @@ export default function MainScreen() {
   {
     label: "Дата рождения",
     name: "birthdate",
+    customInput: (
+      <View>
+        <TouchableOpacity
+          style={styles.input}
+          onPress={() => setShowDatePicker(true)}
+        >
+          <Text>
+            {formData.birthdate
+              ? new Date(formData.birthdate).toLocaleDateString()
+              : "Выберите дату"}
+          </Text>
+        </TouchableOpacity>
+        {showDatePicker && (
+          <DateTimePicker
+            value={
+              formData.birthdate ? new Date(formData.birthdate) : new Date()
+            }
+            mode="date"
+            display={Platform.OS === "ios" ? "spinner" : "default"}
+            onChange={(event, selectedDate) => {
+              setShowDatePicker(Platform.OS === "ios"); // скрывать на Android
+              if (selectedDate) {
+                setFormData((prev) => ({
+                  ...prev,
+                  birthdate: selectedDate.toISOString(),
+                }));
+              }
+            }}
+          />
+        )}
+      </View>
+    ),
   },
   {
     label: "Номер чипа",

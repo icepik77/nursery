@@ -3,7 +3,7 @@ import BottomMenu from "@/components/BottomMenu";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -25,7 +25,14 @@ export default function EventListScreen() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const { addEvent, updateEvent, deleteEvent, pets, allEvents } = usePetContext();
+  const { fetchEvents, addEvent, updateEvent, deleteEvent, pets, allEvents, selectedPetId } = usePetContext();
+
+  useEffect(() => {
+    if (selectedPetId) {
+      console.log("selectedPetId", selectedPetId); 
+      fetchEvents(selectedPetId);
+    }
+  }, [selectedPetId]);
 
   const pet = pets.find((p) => p.id === id);
   const selectedPetEvents = allEvents[id ?? ""] || [];

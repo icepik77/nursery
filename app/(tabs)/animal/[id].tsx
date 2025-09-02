@@ -1,3 +1,4 @@
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
@@ -30,6 +31,7 @@ export default function MainScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [eventTitle, setEventTitle] = useState("");
   const [eventDate, setEventDate] = useState("");
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const { selectedPetId, setSelectedPetId, addEvent, formData, setFormData, addPet, updatePet, pets, setPets} = usePetContext();
 
   const router = useRouter(); 
@@ -230,7 +232,6 @@ export default function MainScreen() {
                 </View>
                 {/* Остальные поля */}
                 {[
-                  ["Дата рождения", "birthdate"],
                   ["Номер чипа", "chip"],
                   ["Порода", "breed"],
                   ["Вес", "weight"],
@@ -249,6 +250,36 @@ export default function MainScreen() {
                     />
                   </View>
                 ))}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Дата рождения</Text>
+                  <TouchableOpacity
+                    style={styles.input}
+                    onPress={() => setShowDatePicker(true)}
+                  >
+                    <Text>
+                      {formData.birthdate
+                        ? new Date(formData.birthdate).toLocaleDateString()
+                        : "Выберите дату"}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {showDatePicker && (
+                    <DateTimePicker
+                      value={formData.birthdate ? new Date(formData.birthdate) : new Date()}
+                      mode="date"
+                      display={Platform.OS === "ios" ? "spinner" : "default"}
+                      onChange={(event, selectedDate) => {
+                        setShowDatePicker(Platform.OS === "ios"); // на Android закрывается
+                        if (selectedDate) {
+                          setFormData((prev) => ({
+                            ...prev,
+                            birthdate: selectedDate.toISOString(),
+                          }));
+                        }
+                      }}
+                    />
+                  )}
+                </View>
               </View>
             </View>
           </View>

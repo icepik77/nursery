@@ -11,7 +11,7 @@ export default function Index() {
   const { logout } = useAuth();
 
   useEffect(() => {
-    logout();
+    // logout();
 
     const checkToken = async () => {
       const token = await AsyncStorage.getItem("token");

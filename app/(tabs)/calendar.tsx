@@ -15,15 +15,14 @@ type CalendarItems = {
 
 export default function CalendarScreen() {
   const [items, setItems] = useState<CalendarItems>({});
+  const [loaded, setLoaded] = useState(false); // флаг загрузки
   const { pets, allEvents } = usePetContext();
-
 
   useEffect(() => {
     const newItems: CalendarItems = {};
 
-    // Добавляем дни рождения всех питомцев
     pets.forEach((pet) => {
-      const birthdate = pet.birthdate?.split("T")[0]; // на случай ISO строки
+      const birthdate = pet.birthdate?.split("T")[0];
       if (birthdate) {
         if (!newItems[birthdate]) newItems[birthdate] = [];
         newItems[birthdate].push({
@@ -33,11 +32,10 @@ export default function CalendarScreen() {
       }
     });
 
-    // Добавляем события всех питомцев в календарь 
     Object.entries(allEvents).forEach(([petId, petEvents]) => {
       const pet = pets.find(p => p.id === petId);
       if (!pet) return;
-      
+
       petEvents.forEach((event) => {
         const date = event.date?.split("T")[0];
         if (date) {
@@ -51,7 +49,20 @@ export default function CalendarScreen() {
     });
 
     setItems(newItems);
+    setLoaded(true); // загрузка завершена
   }, [pets, allEvents]);
+
+  // if (loaded && Object.keys(items).length === 0) {
+  //   // если загрузка завершена и нет событий
+  //   return (
+  //     <SafeAreaView style={styles.container}>
+  //       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+  //         <Text style={{ color: "#6B7280", fontSize: 16 }}>Нет мероприятий</Text>
+  //       </View>
+  //       <BottomMenu />
+  //     </SafeAreaView>
+  //   );
+  // }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -79,6 +90,7 @@ export default function CalendarScreen() {
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
