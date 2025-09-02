@@ -52,6 +52,7 @@ export default function ProfileScreen() {
       >
         <SafeAreaView style={styles.container}>
           <ScrollView contentContainerStyle={styles.scrollContent}>
+            <Text style={styles.title}>Профиль</Text>
             {/* Аватар */}
             <TouchableOpacity onPress={pickImage} style={styles.avatarWrapper}>
               <Image
@@ -117,6 +118,13 @@ const styles = StyleSheet.create({
     marginTop: 50,
     textAlign: "center",
     fontSize: 18,
+  },
+    title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 24,
+    textAlign: "center",
+    marginTop: 16,
   },
   container: {
     flex: 1,

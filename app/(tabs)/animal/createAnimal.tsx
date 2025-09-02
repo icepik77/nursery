@@ -58,6 +58,7 @@ export default function MainScreen() {
 
   const handleSubmit = () => {
     addPet();
+    
     router.replace("/");
   };
 

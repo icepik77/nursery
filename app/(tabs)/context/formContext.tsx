@@ -159,55 +159,50 @@ export const PetProvider = ({ children }: PetProviderProps) => {
   }, [pets]);
 
   const addPet = async () => {
-    console.log("userAddPet", user);
-    if (!user) {
-      console.error("Пользователь не авторизован");
-      return;
-    }
-    if (!formData.name) {
-      console.error("Имя питомца не указано");
-      return;
+    if (!user) return;
+
+    const token = await AsyncStorage.getItem("token");
+    if (!token) throw new Error("Нет токена");
+
+    const form = new FormData();
+
+    // добавляем поля формы
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value !== null && key !== "imageUri") form.append(key, value as any);
+    });
+
+    // добавляем изображение
+    if (formData.imageUri) {
+      const uriParts = formData.imageUri.split("/");
+      const fileName = uriParts[uriParts.length - 1];
+      const ext = fileName.split(".").pop()?.toLowerCase();
+      const fileType = ext === "png" ? "image/png" : "image/jpeg";
+
+      form.append("image", {
+        uri: formData.imageUri,
+        name: fileName,
+        type: fileType,
+      } as any);
     }
 
     try {
-      const token = await AsyncStorage.getItem("token");
-      if (!token) throw new Error("Нет токена");
+      const res = await axios.post("http://83.166.244.36:3000/api/pets", form, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-      // POST-запрос
-      const res = await axios.post(
-        "http://83.166.244.36:3000/api/pets",
-        { ...formData, user_id: user.id },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      console.log("Ответ сервера:", res.data);
 
-      console.log("Ответ сервера:", res.data); // ✅ вот тут ответ
-
-      // Обновляем список питомцев
+      // ✅ сразу обновляем список питомцев
       await fetchPets();
 
-      // Сбрасываем форму
-      setFormData({
-        name: "",
-        gender: "",
-        birthdate: "",
-        chip: "",
-        breed: "",
-        weight: "",
-        height: "",
-        color: "",
-        note: "",
-        imageUri: "",
-        bigNote: "",
-        category: "",
-        pasportName: "",
-      });
+      // можно ещё сразу выбрать нового питомца
+      setSelectedPetId(res.data.id);
+      setFormData(res.data);
     } catch (err: any) {
-      // Если сервер вернул ошибку, покажем её
-      if (err.response) {
-        console.error("Ошибка сервера:", err.response.data);
-      } else {
-        console.error("Ошибка добавления питомца:", err.message);
-      }
+      console.error("Ошибка при добавлении питомца:", err.response?.data || err.message);
     }
   };
 
