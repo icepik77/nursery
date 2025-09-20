@@ -136,7 +136,13 @@ export const PetProvider = ({ children }: PetProviderProps) => {
         }
       );
 
-      setPets(res.data);
+      setPets(res.data.map((p: any) => ({
+        ...p,
+        imageUri: p.imageuri,
+        bigNote: p.bignote,
+        pasportName: p.pasportname
+      })));
+      console.log("res.data", res.data); 
       if (res.data.length > 0) {
         setSelectedPetId(res.data[0].id);
         setFormData(res.data[0]);
@@ -173,19 +179,39 @@ export const PetProvider = ({ children }: PetProviderProps) => {
       const token = await AsyncStorage.getItem("token");
       if (!token) throw new Error("Нет токена");
 
+      // Готовим данные в формате FormData
+      const dataToSend = new FormData();
+      Object.entries({ ...formData, user_id: user.id }).forEach(([key, value]) => {
+        if (value) {
+          if (key === "imageUri") {
+            dataToSend.append("image", {
+              uri: value as string,
+              type: "image/jpeg", // тут лучше mime определять
+              name: "pet-photo.jpg",
+            } as any);
+          } else {
+            dataToSend.append(key, value as string);
+          }
+        }
+      });
+
       // POST-запрос
       const res = await axios.post(
         "http://83.166.244.36:3000/api/pets",
-        { ...formData, user_id: user.id },
-        { headers: { Authorization: `Bearer ${token}` } }
+        dataToSend,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
 
-      console.log("Ответ сервера:", res.data); // ✅ вот тут ответ
+      console.log("Ответ сервера:", res.data);
 
-      // Обновляем список питомцев
       await fetchPets();
 
-      // Сбрасываем форму
+      // Сброс формы
       setFormData({
         name: "",
         gender: "",
@@ -202,7 +228,6 @@ export const PetProvider = ({ children }: PetProviderProps) => {
         pasportName: "",
       });
     } catch (err: any) {
-      // Если сервер вернул ошибку, покажем её
       if (err.response) {
         console.error("Ошибка сервера:", err.response.data);
       } else {
@@ -210,6 +235,7 @@ export const PetProvider = ({ children }: PetProviderProps) => {
       }
     }
   };
+
 
   const updatePet = async (id: string, updatedData: Partial<PetForm>) => {
   if (!user) {

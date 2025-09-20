@@ -1,7 +1,6 @@
 import BottomMenu from "@/components/BottomMenu";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker"; // ✅ добавили Picker
-import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -39,19 +38,11 @@ export default function MainScreen() {
     if (!result.canceled) {
       const pickedUri = result.assets[0].uri;
 
-      const fileName = pickedUri.split("/").pop();
-      const dir = FileSystem.documentDirectory ?? FileSystem.cacheDirectory ?? "";
-      const newPath = dir + fileName;
-
-      await FileSystem.copyAsync({
-        from: pickedUri,
-        to: newPath,
-      });
-
-      setImageUri(newPath);
+      // Сохраняем только uri — он же нужен для отображения
+      setImageUri(pickedUri);
       setFormData({
         ...formData,
-        imageUri: newPath,
+        imageUri: pickedUri,
       });
     }
   };
