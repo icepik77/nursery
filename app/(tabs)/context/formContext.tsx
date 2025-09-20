@@ -238,42 +238,57 @@ export const PetProvider = ({ children }: PetProviderProps) => {
 
 
   const updatePet = async (id: string, updatedData: Partial<PetForm>) => {
-  if (!user) {
-    console.error("Пользователь не авторизован");
-    return;
-  }
+    if (!user) {
+      console.error("Пользователь не авторизован");
+      return;
+    }
 
-  try {
-    const token = await AsyncStorage.getItem("token");
-    if (!token) throw new Error("Нет токена");
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Нет токена");
 
-    // PUT-запрос для обновления питомца
-    const res = await axios.put(
-      `http://83.166.244.36:3000/api/pets/${id}`,
-      updatedData,
-      {
-        headers: { Authorization: `Bearer ${token}` },
+      // PUT-запрос для обновления питомца
+      const normalized: Record<string, any> = {};
+      for (const [key, value] of Object.entries(updatedData)) {
+        normalized[key.toLowerCase()] = value;
       }
-    );
 
-    console.log("Питомец обновлён:", res.data);
+      const res = await axios.put(
+        `http://83.166.244.36:3000/api/pets/${id}`,
+        normalized,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      
+      console.log("Питомец обновлён:", res.data);
 
-    // Обновляем локальный список питомцев
-    setPets((prevPets) =>
-      prevPets.map((pet) => (pet.id === id ? { ...pet, ...res.data } : pet))
-    );
+      // Обновляем локальный список питомцев
+      setPets((prevPets) =>
+        prevPets.map((pet) =>
+          pet.id === id
+            ? {
+                ...pet,
+                ...res.data,
+                imageUri: res.data.imageuri,
+                bigNote: res.data.bignote,
+                pasportName: res.data.pasportname,
+              }
+            : pet
+        )
+      );
 
-    // Если обновляется выбранный питомец — обновляем форму
-    if (selectedPetId === id) {
-      setFormData((prev) => ({ ...prev, ...res.data }));
+      // Если обновляется выбранный питомец — обновляем форму
+      if (selectedPetId === id) {
+        setFormData((prev) => ({ ...prev, ...res.data }));
+      }
+    } catch (err: any) {
+      if (err.response) {
+        console.error("Ошибка сервера:", err.response.data);
+      } else {
+        console.error("Ошибка обновления питомца:", err.message);
+      }
     }
-  } catch (err: any) {
-    if (err.response) {
-      console.error("Ошибка сервера:", err.response.data);
-    } else {
-      console.error("Ошибка обновления питомца:", err.message);
-    }
-  }
 };
 
   const removePet = async (id: string) => {

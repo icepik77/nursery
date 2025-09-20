@@ -1,6 +1,5 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
-import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -48,35 +47,24 @@ export default function MainScreen() {
     }
   }, [id]);
 
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      const pickedUri = result.assets[0].uri;
-
-      const fileName = pickedUri.split("/").pop();
-      const dir = FileSystem.documentDirectory ?? FileSystem.cacheDirectory ?? "";
-      const newPath = dir + fileName;
-
-      await FileSystem.copyAsync({
-        from: pickedUri,
-        to: newPath,
+   const pickImage = async () => {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
       });
-
-      // 💡 Обновляем локальное состояние
-      setImageUri(newPath);
-
-      // 💡 И сохраняем в formData
-      setFormData({
-        ...formData,
-        imageUri: newPath,
-      });
+  
+      if (!result.canceled) {
+        const pickedUri = result.assets[0].uri;
+  
+        // Сохраняем только uri — он же нужен для отображения
+        setImageUri(pickedUri);
+        setFormData({
+          ...formData,
+          imageUri: pickedUri,
+        });
+      }
     };
-  };
 
   // const updatePet = (id: string, updatedData: Partial<Pet>) => {
   //   setPets((prevPets) =>
@@ -100,6 +88,9 @@ export default function MainScreen() {
 
     router.replace("/");
   };
+
+
+  
 
   return (
     <>
