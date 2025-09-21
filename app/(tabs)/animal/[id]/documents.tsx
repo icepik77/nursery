@@ -22,10 +22,15 @@ export default function FileUploader() {
     }
 
     const result = await DocumentPicker.getDocumentAsync({ type: "*/*" });
+
     if (!result.canceled) {
-      const asset = result.assets[0]; // массив выбранных файлов
+      const asset = result.assets[0];
+
+      // кодируем имя файла для безопасной передачи на сервер
+      const safeName = encodeURIComponent(asset.name);
+
       const fileData = {
-        name: asset.name,
+        name: safeName, // безопасное имя
         uri: asset.uri,
         type: asset.mimeType || "application/octet-stream",
         size: asset.size,
@@ -70,9 +75,9 @@ export default function FileUploader() {
               </Text>
             </View>
             <View style={{ flexDirection: 'row' }}>
-              <TouchableOpacity onPress={() => shareFile(file)} style={styles.actionButton}>
+              {/* <TouchableOpacity onPress={() => shareFile(file)} style={styles.actionButton}>
                 <MaterialIcons name="share" size={24} color="#00796b" />
-              </TouchableOpacity>
+              </TouchableOpacity> */}
               <TouchableOpacity onPress={() => removeFile(file.id)} style={[styles.actionButton, { marginLeft: 8 }]}>
                 <MaterialIcons name="delete" size={24} color="#d32f2f" />
               </TouchableOpacity>
