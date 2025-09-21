@@ -51,6 +51,11 @@ export type PetFile = {
   updated_at?: string;
 };
 
+type UpdateFilePayload = {
+  description?: string;
+  newFile?: { uri: string; name: string; type?: string };
+};
+
 interface PetContextType {
   pets: Pet[];
   setPets: React.Dispatch<React.SetStateAction<Pet[]>>;
@@ -77,7 +82,7 @@ interface PetContextType {
   files: PetFile[];
   fetchFiles: (petId: string) => Promise<void>;
   addFile: (petId: string, file: { name: string; uri: string; type?: string; size?: number }) => Promise<void>;
-  updateFile: (fileId: string, updatedData: Partial<PetFile>) => Promise<void>;
+  updateFile: (fileId: string, data: UpdateFilePayload) => Promise<void>;
   deleteFile: (fileId: string) => Promise<void>;
   medical: PetMedical[];
   fetchMedical: (petId: string) => Promise<void>;
@@ -116,7 +121,19 @@ export const PetProvider = ({ children }: PetProviderProps) => {
   const [files, setFiles] = useState<PetFile[]>([]);
   const [medical, setMedical] = useState<PetMedical[]>([]);
 
-  const fetchPets = async () => {
+  useEffect(() => {
+    fetchPets();
+  }, [user]);
+
+  useEffect(() => {
+    if (!pets.length) return;
+
+    pets.forEach((pet) => {
+      fetchEvents(pet.id);
+    });
+  }, [pets]);
+
+ const fetchPets = async () => {
     try {
       const token = await AsyncStorage.getItem("token");
       console.log("user", user); 
@@ -142,7 +159,7 @@ export const PetProvider = ({ children }: PetProviderProps) => {
         bigNote: p.bignote,
         pasportName: p.pasportname
       })));
-      console.log("res.data", res.data); 
+
       if (res.data.length > 0) {
         setSelectedPetId(res.data[0].id);
         setFormData(res.data[0]);
@@ -151,18 +168,6 @@ export const PetProvider = ({ children }: PetProviderProps) => {
       console.error("Ошибка загрузки питомцев", err);
     }
   };
-
-  useEffect(() => {
-    fetchPets();
-  }, [user]);
-
-  useEffect(() => {
-    if (!pets.length) return;
-
-    pets.forEach((pet) => {
-      fetchEvents(pet.id);
-    });
-  }, [pets]);
 
   const addPet = async () => {
     console.log("userAddPet", user);
@@ -235,7 +240,6 @@ export const PetProvider = ({ children }: PetProviderProps) => {
       }
     }
   };
-
 
   const updatePet = async (id: string, updatedData: Partial<PetForm>) => {
     if (!user) {
@@ -395,28 +399,28 @@ export const PetProvider = ({ children }: PetProviderProps) => {
   };
 
   // Удаляем событие
-    const deleteEvent = async (petId: string, index: number) => {
-      const eventToDelete = events[petId]?.[index];
-      if (!eventToDelete) return;
+  const deleteEvent = async (petId: string, index: number) => {
+    const eventToDelete = events[petId]?.[index];
+    if (!eventToDelete) return;
 
-      try {
-        const token = await AsyncStorage.getItem("token");
-        if (!token) throw new Error("Нет токена");
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Нет токена");
 
-        const eventId = (eventToDelete as any).id; // также нужен id события
-        await axios.delete(`http://83.166.244.36:3000/api/events/${eventId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+      const eventId = (eventToDelete as any).id; // также нужен id события
+      await axios.delete(`http://83.166.244.36:3000/api/events/${eventId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-        setEvents((prev) => {
-          const updatedEvents = [...(prev[petId] || [])];
-          updatedEvents.splice(index, 1);
-          return { ...prev, [petId]: updatedEvents };
-        });
-      } catch (err) {
-        console.error("Ошибка удаления события:", err);
-      }
-    };
+      setEvents((prev) => {
+        const updatedEvents = [...(prev[petId] || [])];
+        updatedEvents.splice(index, 1);
+        return { ...prev, [petId]: updatedEvents };
+      });
+    } catch (err) {
+      console.error("Ошибка удаления события:", err);
+    }
+  };
 
   // Получить все заметки для питомца
   const fetchNotes = async (petId: string) => {
@@ -505,36 +509,78 @@ export const PetProvider = ({ children }: PetProviderProps) => {
   };
 
   // Добавить новый файл
-  const addFile = async (petId: string, file: { name: string; uri: string; type?: string; size?: number }) => {
+  const addFile = async (
+    petId: string,
+    file: { uri: string; name: string; type?: string },
+    description?: string
+  ) => {
     try {
       const token = await AsyncStorage.getItem("token");
       if (!token || !user) throw new Error("Нет токена");
 
+      const formData = new FormData();
+      formData.append("pet_id", petId);
+      formData.append("user_id", user.id);        // обязательно
+      if (description) formData.append("description", description);
+
+      // 👇 сам файл
+      formData.append("file", {
+        uri: file.uri,
+        name: file.name,
+        type: file.type || "application/octet-stream",
+      } as any);
+
       const res = await axios.post(
         "http://83.166.244.36:3000/api/files",
-        { pet_id: petId, ...file },
-        { headers: { Authorization: `Bearer ${token}` } }
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
 
-      setFiles(prev => [res.data, ...prev]);
+      // сервер вернёт fileuri, filename, id, ...
+      setFiles((prev) => [res.data, ...prev]);
     } catch (err) {
       console.error("Ошибка добавления файла", err);
     }
   };
 
-  // Обновить файл
-  const updateFile = async (fileId: string, updatedData: Partial<PetFile>) => {
+  // Обновить файл (например, описание или замену файла)
+  const updateFile = async (
+    fileId: string,
+    data: { description?: string; newFile?: { uri: string; name: string; type?: string } }
+  ) => {
     try {
       const token = await AsyncStorage.getItem("token");
       if (!token) throw new Error("Нет токена");
 
+      const formData = new FormData();
+      if (data.description) formData.append("description", data.description);
+
+      // ⚡ Если нужно заменить сам файл
+      if (data.newFile) {
+        formData.append("file", {
+          uri: data.newFile.uri,
+          name: data.newFile.name,
+          type: data.newFile.type || "application/octet-stream",
+        } as any);
+      }
+
       const res = await axios.put(
         `http://83.166.244.36:3000/api/files/${fileId}`,
-        updatedData,
-        { headers: { Authorization: `Bearer ${token}` } }
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
 
-      setFiles(prev => prev.map(f => (f.id === fileId ? res.data : f)));
+      setFiles((prev) => prev.map((f) => (f.id === fileId ? res.data : f)));
     } catch (err) {
       console.error("Ошибка обновления файла", err);
     }
@@ -550,7 +596,7 @@ export const PetProvider = ({ children }: PetProviderProps) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setFiles(prev => prev.filter(f => f.id !== fileId));
+      setFiles((prev) => prev.filter((f) => f.id !== fileId));
     } catch (err) {
       console.error("Ошибка удаления файла", err);
     }

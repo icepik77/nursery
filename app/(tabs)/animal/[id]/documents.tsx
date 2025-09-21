@@ -21,14 +21,14 @@ export default function FileUploader() {
       return;
     }
 
-    const result = await DocumentPicker.getDocumentAsync({ type: '*/*' });
-
-    if (result.type === 'success') {
-      // Теперь TypeScript точно знает, что result — DocumentPickerSuccessResult
+    const result = await DocumentPicker.getDocumentAsync({ type: "*/*" });
+    if (!result.canceled) {
+      const asset = result.assets[0]; // массив выбранных файлов
       const fileData = {
-        name: result.name,
-        uri: result.uri,
-        size: result.size, // может быть undefined
+        name: asset.name,
+        uri: asset.uri,
+        type: asset.mimeType || "application/octet-stream",
+        size: asset.size,
       };
 
       await addFile(selectedPetId, fileData);
