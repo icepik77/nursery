@@ -1,4 +1,5 @@
 import BottomMenu from "@/components/BottomMenu";
+import CustomHeader from "@/components/CustomHeader";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker"; // ✅ добавили Picker
 import * as ImagePicker from "expo-image-picker";
@@ -59,9 +60,9 @@ export default function MainScreen() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <SafeAreaView style={{ flex: 1 }}>
+          <CustomHeader title="Создание животных"/>
           <ScrollView contentContainerStyle={styles.container}>
-            <Text style={styles.title}>Создать профиль</Text>
-
+            
             <View style={styles.card}>
               {/* Tabs */}
               <View style={styles.tabsContainer}>

@@ -1,4 +1,5 @@
 import BottomMenu from '@/components/BottomMenu';
+import CustomHeader from '@/components/CustomHeader';
 import { MaterialIcons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import {
@@ -67,7 +68,8 @@ export default function PetNotesScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <SafeAreaView style={styles.container}>
-          <Text style={styles.title}>Заметки о питомце</Text>
+          <CustomHeader title="Заметки для питомца"/>
+          {/* <Text style={styles.title}>Заметки о питомце</Text> */}
           <ScrollView>
             {notes.length === 0 ? (
               <Text style={styles.emptyText}>Заметок пока нет</Text>

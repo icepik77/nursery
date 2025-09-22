@@ -1,4 +1,5 @@
 import BottomMenu from '@/components/BottomMenu';
+import CustomHeader from '@/components/CustomHeader';
 import ProductCard from '@/components/ProductCard';
 import { Ionicons } from "@expo/vector-icons"; // ← добавляем
 import { useRouter } from "expo-router";
@@ -15,7 +16,8 @@ export default function StoreTab() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Магазин</Text>
+      {/* <Text style={styles.title}>Магазин</Text> */}
+      <CustomHeader title="Магазин"/>
       <FlatList
         data={mockProducts}
         keyExtractor={(item) => item.id}

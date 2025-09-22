@@ -1,4 +1,5 @@
 import BottomMenu from '@/components/BottomMenu';
+import CustomHeader from '@/components/CustomHeader';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
@@ -61,7 +62,8 @@ export default function FileUploader() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Документы</Text>
+      <CustomHeader title="Документы"/>
+      {/* <Text style={styles.title}>Документы</Text> */}
       <ScrollView style={{ flex: 1 }}>
         {(!files || files.length === 0) && <Text style={styles.noFilesText}>Файлы не выбраны</Text>}
 

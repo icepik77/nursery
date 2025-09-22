@@ -1,4 +1,5 @@
 import BottomMenu from "@/components/BottomMenu";
+import CustomHeader from "@/components/CustomHeader";
 import { getSocket, initSocket } from "@/utils/socket";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef, useState } from "react";
@@ -135,9 +136,20 @@ export default function ChatScreen() {
     <>
       <SafeAreaView style={{ flex: 1, backgroundColor: "#fff", marginTop: 20 }}>
         <View style={styles.header}>
-          <Text style={styles.title}>Общий чат</Text>
+          {/* <Text style={styles.title}>Общий чат</Text> */}
+          <CustomHeader title="Общий чат"/>
           <TouchableOpacity onPress={() => setSearchActive((prev) => !prev)}>
-            <Ionicons name="search" size={24} color="#00796b" />
+           <Ionicons
+              name="search"
+              size={24}
+              color="#00796b"
+              style={{
+                position: 'absolute',
+                right: 16,
+                top: '10%',
+                transform: [{ translateY: -12 }],
+              }}
+            />
           </TouchableOpacity>
         </View>
 
@@ -200,6 +212,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 8,
     marginBottom: 5,
+    marginRight: 20
   },
   messageRow: { flexDirection: "row", alignItems: "flex-end", marginVertical: 5 },
   title: { fontSize: 24, fontWeight: "bold", marginBottom: 0 },

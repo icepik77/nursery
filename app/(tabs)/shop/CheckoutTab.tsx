@@ -1,4 +1,5 @@
 import BottomMenu from '@/components/BottomMenu';
+import CustomHeader from '@/components/CustomHeader';
 import React, { useState } from 'react';
 import { Alert, Button, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import MaskInput from 'react-native-mask-input';
@@ -42,6 +43,7 @@ export default function CheckoutTab() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#f9f9f9' }}>
+      <CustomHeader title="Оформление заказа"/>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}

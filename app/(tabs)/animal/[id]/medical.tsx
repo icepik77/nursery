@@ -1,4 +1,5 @@
 import BottomMenu from '@/components/BottomMenu';
+import CustomHeader from '@/components/CustomHeader';
 import { MaterialIcons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import {
@@ -105,7 +106,8 @@ export default function NotesScreen() {
     <>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <SafeAreaView style={styles.container}>
-          <Text style={styles.title}>Заметки для питомца</Text>
+          {/* <Text style={styles.title}>Заметки для питомца</Text> */}
+          <CustomHeader title="Заметки для питомца"/>
 
           {/* Выбор категории */}
           <View style={styles.tabContainer}>
@@ -214,7 +216,7 @@ export default function NotesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f4f6f8', padding: 20, marginTop: 20 },
+  container: { flex: 1, backgroundColor: '#f4f6f8', padding: 20},
   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 24, textAlign: 'center', marginTop: 16 },
   tabContainer: { flexDirection: 'row', marginBottom: 10 },
   tab: { flex: 1, paddingVertical: 8, borderBottomWidth: 2, borderBottomColor: 'transparent' },

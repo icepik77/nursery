@@ -19,6 +19,7 @@ import {
 
 
 import BottomMenu from "@/components/BottomMenu";
+import CustomHeader from "@/components/CustomHeader";
 import { usePetContext } from "../context/formContext";
 
 
@@ -99,8 +100,9 @@ export default function MainScreen() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <SafeAreaView>
+          <CustomHeader title="Профиль питомца"/>
           <ScrollView contentContainerStyle={styles.container}>
-          <Text style={styles.title}>Профиль питомца</Text>
+          {/* <Text style={styles.title}>Профиль питомца</Text> */}
           <View style={styles.card}>
             {/* Tabs */}
             {/* <View style={styles.tabsContainer}>

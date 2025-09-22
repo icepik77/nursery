@@ -1,5 +1,6 @@
 // app/products/[id].tsx
 import BottomMenu from "@/components/BottomMenu";
+import CustomHeader from "@/components/CustomHeader";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -27,6 +28,7 @@ export default function ProductDetailsScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1 }}> 
+      <CustomHeader title="Карточка товара"/>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.container}>
         <Image
           source={

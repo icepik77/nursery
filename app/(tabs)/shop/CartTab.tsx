@@ -1,4 +1,5 @@
 import BottomMenu from "@/components/BottomMenu";
+import CustomHeader from "@/components/CustomHeader";
 import { Ionicons } from "@expo/vector-icons"; // ✅ импорт иконок
 import { useRouter } from "expo-router";
 import React from "react";
@@ -18,6 +19,7 @@ export default function CartTab() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <CustomHeader title="Корзина"/>
       {cart.length === 0 ? (
         <Text style={styles.empty}>Корзина пуста</Text>
       ) : (

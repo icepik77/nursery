@@ -1,4 +1,5 @@
 import BottomMenu from "@/components/BottomMenu";
+import CustomHeader from "@/components/CustomHeader";
 import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
 import {
@@ -51,6 +52,7 @@ export default function ProfileScreen() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <SafeAreaView style={styles.container}>
+          <CustomHeader title="Профиль"/>
           <ScrollView contentContainerStyle={styles.scrollContent}>
             {/* Аватар */}
             <TouchableOpacity onPress={pickImage} style={styles.avatarWrapper}>

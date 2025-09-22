@@ -1,5 +1,6 @@
 // app/events/[petId].tsx
 import BottomMenu from "@/components/BottomMenu";
+import CustomHeader from "@/components/CustomHeader";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useLocalSearchParams } from "expo-router";
@@ -85,7 +86,8 @@ export default function EventListScreen() {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <SafeAreaView style={styles.container}>
-          <Text style={styles.title}>События: {pet.name}</Text>
+          {/* <Text style={styles.title}>События: {pet.name}</Text> */}
+          <CustomHeader title="События"/>
 
           <FlatList
             data={selectedPetEvents}

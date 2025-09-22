@@ -1,4 +1,5 @@
 import BottomMenu from "@/components/BottomMenu";
+import CustomHeader from "@/components/CustomHeader";
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -66,6 +67,7 @@ export default function CalendarScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <CustomHeader title="Календарь"/>
       <Agenda
         items={items}
         selected={new Date().toISOString().split("T")[0]}
