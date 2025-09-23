@@ -1,5 +1,6 @@
 // authContext.tsx
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 import { useRouter } from "expo-router";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
@@ -50,30 +51,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await AsyncStorage.setItem("user", JSON.stringify(newUser));
   };
 
-  const updateUser = async (partialUser: Partial<User>) => {
-    if (!user) return;
-    const updatedUser = { ...user, ...partialUser };
+  const updateUser = async (partialUser: Partial<User> & { avatar?: string }) => {
+  if (!user) return;
 
-    const response = await fetch(
-      `http://83.166.244.36:3000/api/auth/${user.id}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(updatedUser),
-      }
-    );
+  const token = await AsyncStorage.getItem("token");
+  if (!token) throw new Error("Нет токена");
 
-    if (!response.ok) {
-      throw new Error("Ошибка при обновлении профиля");
-    }
+  const form = new FormData();
+  if (partialUser.login) form.append("login", partialUser.login);
+  if (partialUser.email) form.append("email", partialUser.email);
 
-    const data = await response.json();
-    setUser(data);
-    await AsyncStorage.setItem("user", JSON.stringify(data));
-  };
+  if (partialUser.avatar) {
+    const uriParts = partialUser.avatar.split("/");
+    const fileName = uriParts[uriParts.length - 1];
+    const type = fileName.endsWith(".png") ? "image/png" : "image/jpeg";
+    form.append("avatar", { uri: partialUser.avatar, name: fileName, type } as any);
+  }
+
+  console.log("partialUser.avatar", partialUser.avatar);
+  const res = await axios.put(
+    `http://83.166.244.36:3000/api/auth/${user.id}`,
+    form,
+    { headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}` } }
+  );
+
+  const data = res.data;
+  setUser(data);
+  await AsyncStorage.setItem("user", JSON.stringify(data));
+};
 
   const updatePassword = async (password: string) => {
     if (!user) return;

@@ -35,6 +35,7 @@ export default function ProfileScreen() {
     });
 
     if (result.canceled || !result.assets?.length) return;
+    console.log("result.assets[0].uri", result.assets[0].uri);
     setAvatar(result.assets[0].uri);
   };
 
