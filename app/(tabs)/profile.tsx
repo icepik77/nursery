@@ -1,6 +1,7 @@
 import BottomMenu from "@/components/BottomMenu";
 import CustomHeader from "@/components/CustomHeader";
 import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   Image,
@@ -18,6 +19,7 @@ import { useAuth } from "./context/authContext";
 
 export default function ProfileScreen() {
   const { user, updateUser, updatePassword, logout } = useAuth();
+  const router = useRouter(); 
 
   if (!user) {
     return <Text style={styles.loading}>Загрузка...</Text>;
@@ -39,11 +41,12 @@ export default function ProfileScreen() {
     setAvatar(result.assets[0].uri);
   };
 
-  const handleSave = () => {
+ const handleSave = () => {
     updateUser({ login, email, avatar });
     if (password) {
       updatePassword(password);
     }
+    router.back(); // 👈 возвращаемся на предыдущую страницу
   };
 
   return (
