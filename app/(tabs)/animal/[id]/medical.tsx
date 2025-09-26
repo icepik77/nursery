@@ -216,7 +216,7 @@ export default function NotesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f4f6f8', padding: 20},
+  container: { flex: 1, backgroundColor: '#f4f6f8', padding: 0},
   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 24, textAlign: 'center', marginTop: 16 },
   tabContainer: { flexDirection: 'row', marginBottom: 10 },
   tab: { flex: 1, paddingVertical: 8, borderBottomWidth: 2, borderBottomColor: 'transparent' },

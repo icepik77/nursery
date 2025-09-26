@@ -138,7 +138,7 @@ export default function PetNotesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f4f6f8', padding: 20, marginTop: 20 },
+  container: { flex: 1, backgroundColor: '#f4f6f8', padding: 0, marginTop: 0 },
   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 24, textAlign: 'center', marginTop: 16 },
   emptyText: { color: '#999', textAlign: 'center', marginTop: 50, fontSize: 16 },
   noteCard: { backgroundColor: '#fff', borderRadius: 12, padding: 15, marginBottom: 12, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
