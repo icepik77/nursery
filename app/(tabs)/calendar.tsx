@@ -65,19 +65,28 @@ export default function CalendarScreen() {
       petCycles.forEach((cycle) => {
         if (!cycle.start) return;
 
-        const start = new Date(cycle.start);
-        const end = cycle.end ? new Date(cycle.end) : start;
+        const firstStart = new Date(cycle.start);
+        const duration = cycle.end 
+          ? (new Date(cycle.end).getTime() - firstStart.getTime()) / (1000 * 60 * 60 * 24) 
+          : 7; // default 7 days if no end
 
-        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-          const dateStr = d.toISOString().split("T")[0];
-          if (!newItems[dateStr]) newItems[dateStr] = [];
-          newItems[dateStr].push({
-            name: `🔴 Цикл (${pet.name})${cycle.note ? " – " + cycle.note : ""}`,
-            height: 50,
-          });
+        // 👉 generate cycles for next 2 years (can adjust)
+        for (let i = 0; i < 4; i++) { 
+          const start = new Date(firstStart);
+          start.setMonth(start.getMonth() + i * 6); // every 6 months
+          const end = new Date(start);
+          end.setDate(start.getDate() + duration);
 
-          // красная точка
-          newMarks[dateStr] = { marked: true, dotColor: "red" };
+          for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            const dateStr = d.toISOString().split("T")[0];
+            if (!newItems[dateStr]) newItems[dateStr] = [];
+            newItems[dateStr].push({
+              name: `🔴 Цикл (${pet.name})${cycle.note ? " – " + cycle.note : ""}`,
+              height: 50,
+            });
+
+            newMarks[dateStr] = { marked: true, dotColor: "red" };
+          }
         }
       });
     });
