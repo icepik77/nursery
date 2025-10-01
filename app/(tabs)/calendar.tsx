@@ -101,7 +101,7 @@ export default function CalendarScreen() {
       <CustomHeader title="Календарь"/>
       <Agenda
         items={items}
-        markedDates={markedDates}   // 👈 добавили
+        markedDates={markedDates}
         selected={new Date().toISOString().split("T")[0]}
         renderItem={(item) => (
           <View style={styles.item}>
@@ -113,6 +113,12 @@ export default function CalendarScreen() {
             <Text style={styles.emptyDateText}>Нет событий</Text>
           </View>
         )}
+        renderEmptyData={() => (     // 👈 это решает проблему "крутилки"
+          <View style={styles.emptyDate}>
+            <Text style={styles.emptyDateText}>Нет событий</Text>
+          </View>
+        )}
+        refreshing={false}            // 👈 выключили спиннер
         theme={{
           agendaTodayColor: "#00796b",
           selectedDayBackgroundColor: "#00796b",
