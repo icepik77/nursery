@@ -16,11 +16,13 @@ type CalendarItems = {
 
 export default function CalendarScreen() {
   const [items, setItems] = useState<CalendarItems>({});
-  const [loaded, setLoaded] = useState(false); // флаг загрузки
+  const [markedDates, setMarkedDates] = useState<any>({});
+  const [loaded, setLoaded] = useState(false);
   const { pets, allEvents, cycles } = usePetContext();
 
   useEffect(() => {
     const newItems: CalendarItems = {};
+    const newMarks: any = {};
 
     // 🎂 Дни рождения
     pets.forEach((pet) => {
@@ -31,6 +33,8 @@ export default function CalendarScreen() {
           name: `🎂 День рождения: ${pet.name || "Питомец"}`,
           height: 50,
         });
+
+        newMarks[birthdate] = { marked: true, dotColor: "#00796b" }; // зелёная точка
       }
     });
 
@@ -47,6 +51,8 @@ export default function CalendarScreen() {
             name: `${event.title} (${pet.name})`,
             height: 50,
           });
+
+          newMarks[date] = { marked: true, dotColor: "#00796b" };
         }
       });
     });
@@ -62,7 +68,6 @@ export default function CalendarScreen() {
         const start = new Date(cycle.start);
         const end = cycle.end ? new Date(cycle.end) : start;
 
-        // идём по дням от start до end
         for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
           const dateStr = d.toISOString().split("T")[0];
           if (!newItems[dateStr]) newItems[dateStr] = [];
@@ -70,31 +75,24 @@ export default function CalendarScreen() {
             name: `🔴 Цикл (${pet.name})${cycle.note ? " – " + cycle.note : ""}`,
             height: 50,
           });
+
+          // красная точка
+          newMarks[dateStr] = { marked: true, dotColor: "red" };
         }
       });
     });
 
-  setItems(newItems);
-  setLoaded(true);
-}, [pets, allEvents, cycles]);
-
-  // if (loaded && Object.keys(items).length === 0) {
-  //   // если загрузка завершена и нет событий
-  //   return (
-  //     <SafeAreaView style={styles.container}>
-  //       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-  //         <Text style={{ color: "#6B7280", fontSize: 16 }}>Нет мероприятий</Text>
-  //       </View>
-  //       <BottomMenu />
-  //     </SafeAreaView>
-  //   );
-  // }
+    setItems(newItems);
+    setMarkedDates(newMarks);
+    setLoaded(true);
+  }, [pets, allEvents, cycles]);
 
   return (
     <SafeAreaView style={styles.container}>
       <CustomHeader title="Календарь"/>
       <Agenda
         items={items}
+        markedDates={markedDates}   // 👈 добавили
         selected={new Date().toISOString().split("T")[0]}
         renderItem={(item) => (
           <View style={styles.item}>
@@ -118,11 +116,8 @@ export default function CalendarScreen() {
   );
 }
 
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   item: {
     backgroundColor: "#fff",
     padding: 16,
@@ -134,19 +129,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  itemText: {
-    fontSize: 16,
-    color: "#111827",
-  },
-  emptyDate: {
-    flex: 1,
-    paddingTop: 20,
-    paddingLeft: 16,
-  },
-  emptyDateText: {
-    fontSize: 14,
-    color: "#6B7280",
-  },
+  itemText: { fontSize: 16, color: "#111827" },
+  emptyDate: { flex: 1, paddingTop: 20, paddingLeft: 16 },
+  emptyDateText: { fontSize: 14, color: "#6B7280" },
 });
-
-
