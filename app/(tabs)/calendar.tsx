@@ -17,11 +17,12 @@ type CalendarItems = {
 export default function CalendarScreen() {
   const [items, setItems] = useState<CalendarItems>({});
   const [loaded, setLoaded] = useState(false); // флаг загрузки
-  const { pets, allEvents } = usePetContext();
+  const { pets, allEvents, cycles } = usePetContext();
 
   useEffect(() => {
     const newItems: CalendarItems = {};
 
+    // 🎂 Дни рождения
     pets.forEach((pet) => {
       const birthdate = pet.birthdate?.split("T")[0];
       if (birthdate) {
@@ -33,8 +34,9 @@ export default function CalendarScreen() {
       }
     });
 
+    // 📅 Обычные события
     Object.entries(allEvents).forEach(([petId, petEvents]) => {
-      const pet = pets.find(p => p.id === petId);
+      const pet = pets.find((p) => p.id === petId);
       if (!pet) return;
 
       petEvents.forEach((event) => {
@@ -49,9 +51,32 @@ export default function CalendarScreen() {
       });
     });
 
+    // 🔴 Менструальные циклы
+    Object.entries(cycles).forEach(([petId, petCycles]) => {
+      const pet = pets.find((p) => p.id === petId);
+      if (!pet) return;
+
+      petCycles.forEach((cycle) => {
+        if (!cycle.start) return;
+
+        const start = new Date(cycle.start);
+        const end = cycle.end ? new Date(cycle.end) : start;
+
+        // идём по дням от start до end
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+          const dateStr = d.toISOString().split("T")[0];
+          if (!newItems[dateStr]) newItems[dateStr] = [];
+          newItems[dateStr].push({
+            name: `🔴 Цикл (${pet.name})${cycle.note ? " – " + cycle.note : ""}`,
+            height: 50,
+          });
+        }
+      });
+    });
+
     setItems(newItems);
-    setLoaded(true); // загрузка завершена
-  }, [pets, allEvents]);
+    setLoaded(true);
+  }, [pets, allEvents, cycles]);
 
   // if (loaded && Object.keys(items).length === 0) {
   //   // если загрузка завершена и нет событий
@@ -81,6 +106,12 @@ export default function CalendarScreen() {
             <Text style={styles.emptyDateText}>Нет событий</Text>
           </View>
         )}
+        renderEmptyData={() => (         // 👈 добавляем это
+          <View style={styles.emptyDate}>
+            <Text style={styles.emptyDateText}>Событий пока нет</Text>
+          </View>
+        )}
+        refreshing={!loaded}             // 👈 чтобы скрыть колесо после загрузки
         theme={{
           agendaTodayColor: "#00796b",
           selectedDayBackgroundColor: "#00796b",

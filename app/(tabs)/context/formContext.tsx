@@ -30,6 +30,13 @@ export type PetEvent = {
   date: string;
 };
 
+type Cycle = {
+  id?: string;          // comes from the server
+  start: string;        // ISO date (yyyy-mm-dd)
+  end?: string;         // ISO date (nullable)
+  note?: string;        // optional comment
+};
+
 export type Note = {
   id: string;
   pet_id: string;
@@ -62,33 +69,47 @@ interface PetContextType {
   selectedPetId: string | null;
   setSelectedPetId: (id: string | null) => void;
   selectedPet: Pet | null;
+
   selectedPetEvents: PetEvent[];
   allEvents: Record<string, PetEvent[]>;
   formData: PetForm;
   setFormData: React.Dispatch<React.SetStateAction<PetForm>>;
+
   addPet: () => Promise<void>;
-  updatePet: (id: string, updatedData: Partial<PetForm>) => Promise<void>; // ← добавлено
+  updatePet: (id: string, updatedData: Partial<PetForm>) => Promise<void>;
+
   fetchEvents: (petId: string) => Promise<void>;
   addEvent: (petId: string, event: PetEvent) => void;
-  removePet: (id: string) => Promise<void>;
   updateEvent: (petId: string, index: number, updatedEvent: PetEvent) => void;
   deleteEvent: (petId: string, index: number) => void;
+  removePet: (id: string) => Promise<void>;
+
   user: User | null;
+
   notes: Note[];
   fetchNotes: (petId: string) => Promise<void>;
   addNote: (petId: string, text: string) => Promise<void>;
   updateNote: (noteId: string, text: string) => Promise<void>;
   deleteNote: (noteId: string) => Promise<void>;
+
   files: PetFile[];
   fetchFiles: (petId: string) => Promise<void>;
   addFile: (petId: string, file: { name: string; uri: string; type?: string; size?: number }) => Promise<void>;
   updateFile: (fileId: string, data: UpdateFilePayload) => Promise<void>;
   deleteFile: (fileId: string) => Promise<void>;
+
   medical: PetMedical[];
   fetchMedical: (petId: string) => Promise<void>;
   addMedical: (petId: string, data: { title: string; content?: string; category?: string }) => Promise<void>;
   updateMedical: (id: string, data: Partial<PetMedical>) => Promise<void>;
   deleteMedical: (id: string) => Promise<void>;
+
+  // ✅ New menstrual cycle properties & methods
+  cycles: Record<string, Cycle[]>;                               // keyed by petId
+  fetchCycles: (petId: string) => Promise<void>;
+  addCycle: (petId: string, cycle: Cycle) => Promise<void>;
+  updateCycle: (petId: string, index: number, updatedCycle: Cycle) => Promise<void>;
+  deleteCycle: (petId: string, index: number) => Promise<void>;
 }
 
 
@@ -117,6 +138,7 @@ export const PetProvider = ({ children }: PetProviderProps) => {
 
   const [formData, setFormData] = useState<PetForm>({});
   const [events, setEvents] = useState<Record<string, PetEvent[]>>({});
+  const [cycles, setCycles] = useState<Record<string, Cycle[]>>({}); 
   const [notes, setNotes] = useState<Note[]>([]);
   const [files, setFiles] = useState<PetFile[]>([]);
   const [medical, setMedical] = useState<PetMedical[]>([]);
@@ -422,6 +444,118 @@ export const PetProvider = ({ children }: PetProviderProps) => {
     }
   };
 
+  const fetchCycles = async (petId: string) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Нет токена");
+
+      const res = await axios.get(
+        `http://83.166.244.36:3000/api/cycles?petId=${petId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const formatted: Cycle[] = res.data.map((c: any) => ({
+        id: c.id,
+        start: c.start_date,
+        end: c.end_date || undefined,
+        note: c.note || undefined,
+      }));
+
+      setCycles(prev => ({ ...prev, [petId]: formatted }));
+    } catch (err: any) {
+      console.error("Ошибка загрузки циклов:", err.response?.data || err.message);
+    }
+  };
+
+  // 👉 Add a new cycle
+  const addCycle = async (petId: string, cycle: Cycle) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Нет токена");
+
+      const res = await axios.post(
+        "http://83.166.244.36:3000/api/cycles",
+        {
+          petId,
+          start_date: cycle.start.split("T")[0],
+          end_date: cycle.end ? cycle.end.split("T")[0] : null,
+          note: cycle.note || null,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setCycles(prev => ({
+        ...prev,
+        [petId]: [...(prev[petId] || []), {
+          id: res.data.id,
+          start: res.data.start_date,
+          end: res.data.end_date || undefined,
+          note: res.data.note || undefined,
+        }],
+      }));
+    } catch (err: any) {
+      console.error("Ошибка добавления цикла:", err.response?.data || err.message);
+    }
+  };
+
+  // 👉 Update an existing cycle
+  const updateCycle = async (petId: string, index: number, updated: Cycle) => {
+    const current = cycles[petId]?.[index];
+    if (!current?.id) return;
+
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Нет токена");
+
+      const res = await axios.put(
+        `http://83.166.244.36:3000/api/cycles/${current.id}`,
+        {
+          start_date: updated.start.split("T")[0],
+          end_date: updated.end ? updated.end.split("T")[0] : null,
+          note: updated.note || null,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setCycles(prev => {
+        const arr = [...(prev[petId] || [])];
+        arr[index] = {
+          id: res.data.id,
+          start: res.data.start_date,
+          end: res.data.end_date || undefined,
+          note: res.data.note || undefined,
+        };
+        return { ...prev, [petId]: arr };
+      });
+    } catch (err: any) {
+      console.error("Ошибка обновления цикла:", err.response?.data || err.message);
+    }
+  };
+
+  // 👉 Delete a cycle
+  const deleteCycle = async (petId: string, index: number) => {
+    const current = cycles[petId]?.[index];
+    if (!current?.id) return;
+
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Нет токена");
+
+      await axios.delete(
+        `http://83.166.244.36:3000/api/cycles/${current.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setCycles(prev => {
+        const arr = [...(prev[petId] || [])];
+        arr.splice(index, 1);
+        return { ...prev, [petId]: arr };
+      });
+    } catch (err: any) {
+      console.error("Ошибка удаления цикла:", err.response?.data || err.message);
+    }
+  };
+
   // Получить все заметки для питомца
   const fetchNotes = async (petId: string) => {
     try {
@@ -684,31 +818,44 @@ export const PetProvider = ({ children }: PetProviderProps) => {
         selectedPet,
         selectedPetEvents,
         allEvents: events,
+
         formData,
         setFormData,
+
         addPet,
         updatePet,
-        addEvent,
         removePet,
-        fetchEvents,
+
+        addEvent,
         updateEvent,
         deleteEvent,
+        fetchEvents,
+
         user: user,
+
         notes,
         fetchNotes,
         addNote,
         updateNote,
         deleteNote,
+
         files,
         fetchFiles,
         addFile,
         updateFile,
         deleteFile,
+
         medical,
         fetchMedical,
         addMedical,
         updateMedical,
         deleteMedical,
+
+        cycles,          
+        fetchCycles,     
+        addCycle,        
+        updateCycle,     
+        deleteCycle,     
       }}
     >
       {children}
