@@ -152,6 +152,7 @@ export const PetProvider = ({ children }: PetProviderProps) => {
 
     pets.forEach((pet) => {
       fetchEvents(pet.id);
+      fetchCycles(pet.id);
     });
   }, [pets]);
 

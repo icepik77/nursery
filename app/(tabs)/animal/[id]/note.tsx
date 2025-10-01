@@ -138,10 +138,10 @@ export default function PetNotesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f4f6f8', padding: 0, marginTop: 0 },
+  container: { flex: 1, backgroundColor: '#f4f6f8', padding: 0, marginTop: 0, },
   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 24, textAlign: 'center', marginTop: 16 },
   emptyText: { color: '#999', textAlign: 'center', marginTop: 50, fontSize: 16 },
-  noteCard: { backgroundColor: '#fff', borderRadius: 12, padding: 15, marginBottom: 12, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
+  noteCard: { backgroundColor: '#fff', borderRadius: 12, padding: 15, marginBottom: 12, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, elevation: 2, marginRight:20, marginLeft:20 },
   noteText: { fontSize: 16, color: '#333' },
   noteDate: { fontSize: 12, color: '#666', marginTop: 6 },
   fab: { position: 'absolute', bottom: 100, right: 20, backgroundColor: '#00796b', width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', elevation: 5 },

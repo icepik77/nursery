@@ -58,6 +58,7 @@ export default function CalendarScreen() {
     });
 
     // 🔴 Менструальные циклы
+    // 🔴 Менструальные циклы
     Object.entries(cycles).forEach(([petId, petCycles]) => {
       const pet = pets.find((p) => p.id === petId);
       if (!pet) return;
@@ -66,30 +67,27 @@ export default function CalendarScreen() {
         if (!cycle.start) return;
 
         const firstStart = new Date(cycle.start);
-        const duration = cycle.end 
-          ? (new Date(cycle.end).getTime() - firstStart.getTime()) / (1000 * 60 * 60 * 24) 
-          : 7; // default 7 days if no end
 
-        // 👉 generate cycles for next 2 years (can adjust)
-        for (let i = 0; i < 4; i++) { 
+        // 👉 генерируем повтор каждые 6 месяцев (4 раза = 2 года)
+        for (let i = 0; i < 4; i++) {
           const start = new Date(firstStart);
-          start.setMonth(start.getMonth() + i * 6); // every 6 months
-          const end = new Date(start);
-          end.setDate(start.getDate() + duration);
+          start.setMonth(start.getMonth() + i * 6);
 
-          for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-            const dateStr = d.toISOString().split("T")[0];
-            if (!newItems[dateStr]) newItems[dateStr] = [];
-            newItems[dateStr].push({
-              name: `🔴 Цикл (${pet.name})${cycle.note ? " – " + cycle.note : ""}`,
-              height: 50,
-            });
+          const dateStr = start.toISOString().split("T")[0];
+          if (!newItems[dateStr]) newItems[dateStr] = [];
 
-            newMarks[dateStr] = { marked: true, dotColor: "red" };
-          }
+          // событие только на стартовый день
+          newItems[dateStr].push({
+            name: `🔴 Начало цикла (${pet.name})${cycle.note ? " – " + cycle.note : ""}`,
+            height: 50,
+          });
+
+          // точка только на стартовом дне
+          newMarks[dateStr] = { marked: true, dotColor: "red" };
         }
       });
     });
+
 
     setItems(newItems);
     setMarkedDates(newMarks);

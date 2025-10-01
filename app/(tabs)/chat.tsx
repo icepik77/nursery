@@ -134,7 +134,7 @@ export default function ChatScreen() {
 
   return (
     <>
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#fff", marginTop: 20 }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#f4f6f8", marginTop: 20 }}>
         <View style={styles.header}>
           {/* <Text style={styles.title}>Общий чат</Text> */}
           <CustomHeader title="Общий чат"/>
@@ -206,7 +206,7 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 10, marginBottom: 8 },
   searchInput: {
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#fff",
     marginHorizontal: 10,
     borderRadius: 25,
     paddingHorizontal: 15,
