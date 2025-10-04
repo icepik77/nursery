@@ -26,20 +26,30 @@ export default function EventListScreen() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  // Menstrual cycles state
+  // Менструальные циклы (только начало!)
   const [cycleStart, setCycleStart] = useState("");
-  const [cycleEnd, setCycleEnd] = useState("");
-  const [cycleNote, setCycleNote] = useState("");
   const [editingCycleIndex, setEditingCycleIndex] = useState<number | null>(null);
   const [showCycleStartPicker, setShowCycleStartPicker] = useState(false);
-  const [showCycleEndPicker, setShowCycleEndPicker] = useState(false);
 
-  const { fetchEvents, addEvent, updateEvent, deleteEvent, pets, allEvents, selectedPetId, cycles, fetchCycles, addCycle, updateCycle, deleteCycle } = usePetContext();
+  const {
+    fetchEvents,
+    addEvent,
+    updateEvent,
+    deleteEvent,
+    pets,
+    allEvents,
+    selectedPetId,
+    cycles,
+    fetchCycles,
+    addCycle,
+    updateCycle,
+    deleteCycle,
+  } = usePetContext();
 
   useEffect(() => {
     if (selectedPetId) {
       fetchEvents(selectedPetId);
-      fetchCycles(selectedPetId); // fetch cycles for this pet
+      fetchCycles(selectedPetId);
     }
   }, [selectedPetId]);
 
@@ -49,7 +59,7 @@ export default function EventListScreen() {
 
   if (!pet) return <Text>Питомец не найден</Text>;
 
-  // Event handlers (existing)
+  // ---- Events ----
   const handleSave = () => {
     if (!title || !date) return;
     if (editingIndex !== null) {
@@ -62,11 +72,10 @@ export default function EventListScreen() {
     setDate("");
   };
 
-  // Cycle handlers
+  // ---- Cycles ----
   const handleSaveCycle = () => {
     if (!cycleStart) return;
-
-    const newCycle = { start: cycleStart, end: cycleEnd || undefined, note: cycleNote || undefined };
+    const newCycle = { start: cycleStart };
 
     if (editingCycleIndex !== null) {
       updateCycle(pet.id, editingCycleIndex, newCycle);
@@ -76,15 +85,11 @@ export default function EventListScreen() {
     }
 
     setCycleStart("");
-    setCycleEnd("");
-    setCycleNote("");
   };
 
   const startEditCycle = (index: number) => {
     const cycle = selectedPetCycles[index];
     setCycleStart(cycle.start);
-    setCycleEnd(cycle.end || "");
-    setCycleNote(cycle.note || "");
     setEditingCycleIndex(index);
   };
 
@@ -97,12 +102,19 @@ export default function EventListScreen() {
 
   const onCycleStartChange = (_: any, selectedDate?: Date) => {
     setShowCycleStartPicker(false);
-    if (selectedDate) setCycleStart(selectedDate.toISOString().split("T")[0]);
-  };
+    if (!selectedDate) return;
 
-  const onCycleEndChange = (_: any, selectedDate?: Date) => {
-    setShowCycleEndPicker(false);
-    if (selectedDate) setCycleEnd(selectedDate.toISOString().split("T")[0]);
+    const picked = selectedDate.toISOString().split("T")[0];
+    setCycleStart(picked);
+
+    const newCycle = { start: picked };
+
+    if (editingCycleIndex !== null) {
+      updateCycle(pet.id, editingCycleIndex, newCycle);
+      setEditingCycleIndex(null);
+    } else {
+      addCycle(pet.id, newCycle);
+    }
   };
 
   const startEdit = (index: number) => {
@@ -115,11 +127,7 @@ export default function EventListScreen() {
   const confirmDelete = (index: number) => {
     Alert.alert("Удалить событие", "Вы уверены?", [
       { text: "Отмена", style: "cancel" },
-      {
-        text: "Удалить",
-        style: "destructive",
-        onPress: () => deleteEvent(pet.id, index),
-      },
+      { text: "Удалить", style: "destructive", onPress: () => deleteEvent(pet.id, index) },
     ]);
   };
 
@@ -130,11 +138,59 @@ export default function EventListScreen() {
 
   return (
     <>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
         <SafeAreaView style={styles.container}>
           <CustomHeader title="События и циклы" />
 
-          {/* ================= Events ================= */}
+          {/* ================= Cycles (ВВЕРХУ) ================= */}
+          <Text style={styles.title}>Менструальные цикл</Text>
+          <FlatList
+            data={selectedPetCycles}
+            keyExtractor={(_, index) => `cycle-${index}`}
+            renderItem={({ item, index }) => (
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>{item.start}</Text>
+                <View style={styles.actions}>
+                  <TouchableOpacity onPress={() => startEditCycle(index)}>
+                    <Ionicons name="pencil" size={20} color="#4A90E2" />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => confirmDeleteCycle(index)}>
+                    <Ionicons name="trash" size={20} color="red" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          />
+
+          {/* Form for cycles */}
+         {/* ================= Cycles (ONLY DATEPICKER) ================= */}
+          <Text style={styles.title}>Менструальный цикл</Text>
+          <View style={styles.form}>
+            <TouchableOpacity
+              style={styles.dateButton}
+              onPress={() => setShowCycleStartPicker(true)}
+            >
+              <Ionicons name="calendar" size={18} color="#4A90E2" />
+              <Text style={styles.dateButtonText}>
+                {cycleStart || "Выбрать дату начала"}
+              </Text>
+            </TouchableOpacity>
+
+            {showCycleStartPicker && (
+              <DateTimePicker
+                value={cycleStart ? new Date(cycleStart) : new Date()}
+                mode="date"
+                display={Platform.OS === "ios" ? "spinner" : "default"}
+                onChange={onCycleStartChange}  // 👈 сразу добавляет цикл
+              />
+            )}
+          </View>
+
+          {/* ================= Events (НИЖЕ) ================= */}
+          <Text style={styles.title}>События</Text>
           <FlatList
             data={selectedPetEvents}
             keyExtractor={(_, index) => `event-${index}`}
@@ -156,62 +212,35 @@ export default function EventListScreen() {
             )}
           />
 
-          {/* ================= Events Form ================= */}
+          {/* Form for events */}
           <View style={styles.form}>
-            <TextInput placeholder="Название события" value={title} onChangeText={setTitle} style={styles.input} />
-            <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
+            <TextInput
+              placeholder="Название события"
+              value={title}
+              onChangeText={setTitle}
+              style={styles.input}
+            />
+            <TouchableOpacity
+              style={styles.dateButton}
+              onPress={() => setShowDatePicker(true)}
+            >
               <Ionicons name="calendar" size={18} color="#4A90E2" />
               <Text style={styles.dateButtonText}>{date || "Выбрать дату"}</Text>
             </TouchableOpacity>
-            {showDatePicker && <DateTimePicker value={date ? new Date(date) : new Date()} mode="date" display={Platform.OS === "ios" ? "spinner" : "default"} onChange={onDateChange} />}
-            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-              <Text style={styles.saveButtonText}>{editingIndex !== null ? "Сохранить изменения" : "Добавить событие"}</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* ================= Cycles ================= */}
-          <Text style={{ fontSize: 18, fontWeight: "bold", marginTop: 20 }}>Менструальные циклы</Text>
-          <FlatList
-            data={selectedPetCycles}
-            keyExtractor={(_, index) => `cycle-${index}`}
-            renderItem={({ item, index }) => (
-              <View style={styles.card}>
-                <View>
-                  <Text style={styles.cardTitle}>{item.start} → {item.end || "?"}</Text>
-                  {item.note && <Text style={styles.cardDate}>{item.note}</Text>}
-                </View>
-                <View style={styles.actions}>
-                  <TouchableOpacity onPress={() => startEditCycle(index)}>
-                    <Ionicons name="pencil" size={20} color="#4A90E2" />
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => confirmDeleteCycle(index)}>
-                    <Ionicons name="trash" size={20} color="red" />
-                  </TouchableOpacity>
-                </View>
-              </View>
+            {showDatePicker && (
+              <DateTimePicker
+                value={date ? new Date(date) : new Date()}
+                mode="date"
+                display={Platform.OS === "ios" ? "spinner" : "default"}
+                onChange={onDateChange}
+              />
             )}
-          />
-
-          {/* ================= Cycles Form ================= */}
-          <View style={styles.form}>
-            <TouchableOpacity style={styles.dateButton} onPress={() => setShowCycleStartPicker(true)}>
-              <Ionicons name="calendar" size={18} color="#4A90E2" />
-              <Text style={styles.dateButtonText}>{cycleStart || "Начало цикла"}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.dateButton} onPress={() => setShowCycleEndPicker(true)}>
-              <Ionicons name="calendar" size={18} color="#4A90E2" />
-              <Text style={styles.dateButtonText}>{cycleEnd || "Конец цикла (опционально)"}</Text>
-            </TouchableOpacity>
-            <TextInput placeholder="Комментарий" value={cycleNote} onChangeText={setCycleNote} style={styles.input} />
-
-            {showCycleStartPicker && <DateTimePicker value={cycleStart ? new Date(cycleStart) : new Date()} mode="date" display="default" onChange={onCycleStartChange} />}
-            {showCycleEndPicker && <DateTimePicker value={cycleEnd ? new Date(cycleEnd) : new Date()} mode="date" display="default" onChange={onCycleEndChange} />}
-
-            <TouchableOpacity style={styles.saveButton} onPress={handleSaveCycle}>
-              <Text style={styles.saveButtonText}>{editingCycleIndex !== null ? "Сохранить цикл" : "Добавить цикл"}</Text>
+            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+              <Text style={styles.saveButtonText}>
+                {editingIndex !== null ? "Сохранить изменения" : "Добавить событие"}
+              </Text>
             </TouchableOpacity>
           </View>
-
         </SafeAreaView>
       </KeyboardAvoidingView>
       <BottomMenu />
@@ -219,11 +248,9 @@ export default function EventListScreen() {
   );
 }
 
-
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f4f6f8", padding: 16, marginTop: 0 },
-  title: { fontSize: 22, fontWeight: "bold", marginBottom: 15, marginTop: 16, },
+  container: { flex: 1, backgroundColor: "#f4f6f8", padding: 16, paddingBottom: 70 },
+  title: { fontSize: 18, fontWeight: "bold", marginVertical: 12 },
   card: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -239,7 +266,7 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 16, fontWeight: "bold" },
   cardDate: { color: "#555" },
   actions: { flexDirection: "row", alignItems: "center", gap: 12 },
-  form: { marginTop: 20, marginBottom: 80 },
+  form: { marginTop: 10, marginBottom: 30 },
   input: {
     backgroundColor: "#f1f1f1",
     padding: 10,

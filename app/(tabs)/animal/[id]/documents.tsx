@@ -2,18 +2,17 @@ import BottomMenu from '@/components/BottomMenu';
 import CustomHeader from '@/components/CustomHeader';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import React, { useEffect } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { PetFile, usePetContext } from '../../context/formContext';
 
 export default function FileUploader() {
   const { selectedPetId, files, fetchFiles, addFile, deleteFile } = usePetContext();
 
   useEffect(() => {
-    if (selectedPetId) {
-      fetchFiles(selectedPetId);
-    }
+    if (selectedPetId) fetchFiles(selectedPetId);
   }, [selectedPetId]);
 
   const pickFile = async () => {
@@ -23,15 +22,12 @@ export default function FileUploader() {
     }
 
     const result = await DocumentPicker.getDocumentAsync({ type: "*/*" });
-
     if (!result.canceled) {
       const asset = result.assets[0];
-
-      // кодируем имя файла для безопасной передачи на сервер
       const safeName = encodeURIComponent(asset.name);
 
       const fileData = {
-        name: safeName, // безопасное имя
+        name: safeName,
         uri: asset.uri,
         type: asset.mimeType || "application/octet-stream",
         size: asset.size,
@@ -43,18 +39,28 @@ export default function FileUploader() {
     }
   };
 
-  const shareFile = async (file: PetFile) => {
-    try {
-      const canShare = await Sharing.isAvailableAsync();
-      if (!canShare) {
-        alert("Шеринг не поддерживается на этом устройстве");
-        return;
-      }
-      await Sharing.shareAsync(file.uri);
-    } catch (error: any) {
-      alert("Ошибка при попытке поделиться: " + error.message);
+ const downloadAndShare = async (file: PetFile) => {
+  try {
+    if (Platform.OS === 'web') {
+      alert("Скачивание файлов доступно только на мобильных устройствах");
+      return;
     }
-  };
+
+    if (!file.uri.startsWith('file://') && file.uri.startsWith('http')) {
+      const dir = FileSystem.documentDirectory ?? FileSystem.cacheDirectory;
+      if (!dir) throw new Error("Не удалось получить доступ к локальной директории");
+
+      const fileUri = dir + encodeURIComponent(file.name);
+      const { uri } = await FileSystem.downloadAsync(file.uri, fileUri);
+      await Sharing.shareAsync(uri);
+    } else {
+      // локальный файл
+      await Sharing.shareAsync(file.uri);
+    }
+  } catch (e: any) {
+    alert("Ошибка при скачивании/шеринге: " + e.message);
+  }
+};
 
   const removeFile = async (fileId: string) => {
     await deleteFile(fileId);
@@ -63,9 +69,10 @@ export default function FileUploader() {
   return (
     <SafeAreaView style={styles.container}>
       <CustomHeader title="Документы"/>
-      {/* <Text style={styles.title}>Документы</Text> */}
       <ScrollView style={{ flex: 1 }}>
-        {(!files || files.length === 0) && <Text style={styles.noFilesText}>Файлы не выбраны</Text>}
+        {(!files || files.length === 0) && (
+          <Text style={styles.noFilesText}>Файлы не выбраны</Text>
+        )}
 
         {files.map((file) => (
           <View key={file.id} style={styles.card}>
@@ -77,9 +84,9 @@ export default function FileUploader() {
               </Text>
             </View>
             <View style={{ flexDirection: 'row' }}>
-              {/* <TouchableOpacity onPress={() => shareFile(file)} style={styles.actionButton}>
+              <TouchableOpacity onPress={() => downloadAndShare(file)} style={styles.actionButton}>
                 <MaterialIcons name="share" size={24} color="#00796b" />
-              </TouchableOpacity> */}
+              </TouchableOpacity>
               <TouchableOpacity onPress={() => removeFile(file.id)} style={[styles.actionButton, { marginLeft: 8 }]}>
                 <MaterialIcons name="delete" size={24} color="#d32f2f" />
               </TouchableOpacity>
@@ -98,25 +105,8 @@ export default function FileUploader() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f4f6f8',
-    paddingHorizontal: 20,
-    paddingTop: 0,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 24,
-    textAlign: "center",
-    marginTop: 16,
-  },
-  noFilesText: {
-    textAlign: 'center',
-    marginTop: 50,
-    color: '#999',
-    fontSize: 16,
-  },
+  container: { flex: 1, backgroundColor: '#f4f6f8', paddingHorizontal: 20, paddingTop: 0 },
+  noFilesText: { textAlign: 'center', marginTop: 50, color: '#999', fontSize: 16 },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -130,24 +120,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 3,
   },
-  cardContent: {
-    flex: 1,
-  },
-  fileName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-  },
-  date: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 3,
-  },
-  actionButton: {
-    padding: 8,
-    backgroundColor: '#e0f7fa',
-    borderRadius: 8,
-  },
+  cardContent: { flex: 1 },
+  fileName: { fontSize: 16, fontWeight: '600', color: '#333' },
+  date: { fontSize: 12, color: '#666', marginTop: 3 },
+  actionButton: { padding: 8, backgroundColor: '#e0f7fa', borderRadius: 8 },
   fab: {
     position: 'absolute',
     bottom: 100,

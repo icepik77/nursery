@@ -30,6 +30,8 @@ export default function ProfileScreen() {
   const [password, setPassword] = useState("");
   const [avatar, setAvatar] = useState(user.avatar);
 
+  console.log("userProfile", user); 
+
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
