@@ -289,6 +289,7 @@ const screenWidth = Dimensions.get("window").width;
 const styles = StyleSheet.create({
   container: {
     padding: 16,
+    paddingBottom:100,
     backgroundColor: "#F9FAFB",
     flexGrow: 1,
   },

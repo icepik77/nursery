@@ -1,4 +1,3 @@
-// app/events/[petId].tsx
 import BottomMenu from "@/components/BottomMenu";
 import CustomHeader from "@/components/CustomHeader";
 import { Ionicons } from "@expo/vector-icons";
@@ -26,9 +25,8 @@ export default function EventListScreen() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  // Менструальные циклы (только начало!)
+  // Один менструальный цикл
   const [cycleStart, setCycleStart] = useState("");
-  const [editingCycleIndex, setEditingCycleIndex] = useState<number | null>(null);
   const [showCycleStartPicker, setShowCycleStartPicker] = useState(false);
 
   const {
@@ -43,7 +41,6 @@ export default function EventListScreen() {
     fetchCycles,
     addCycle,
     updateCycle,
-    deleteCycle,
   } = usePetContext();
 
   useEffect(() => {
@@ -55,7 +52,13 @@ export default function EventListScreen() {
 
   const pet = pets.find((p) => p.id === id);
   const selectedPetEvents = allEvents[id ?? ""] || [];
-  const selectedPetCycles = cycles[id ?? ""] || [];
+  const selectedPetCycle = (cycles[id ?? ""] || [])[0]; // берём первый цикл
+
+  useEffect(() => {
+    if (selectedPetCycle) {
+      setCycleStart(selectedPetCycle.start);
+    }
+  }, [selectedPetCycle]);
 
   if (!pet) return <Text>Питомец не найден</Text>;
 
@@ -72,34 +75,7 @@ export default function EventListScreen() {
     setDate("");
   };
 
-  // ---- Cycles ----
-  const handleSaveCycle = () => {
-    if (!cycleStart) return;
-    const newCycle = { start: cycleStart };
-
-    if (editingCycleIndex !== null) {
-      updateCycle(pet.id, editingCycleIndex, newCycle);
-      setEditingCycleIndex(null);
-    } else {
-      addCycle(pet.id, newCycle);
-    }
-
-    setCycleStart("");
-  };
-
-  const startEditCycle = (index: number) => {
-    const cycle = selectedPetCycles[index];
-    setCycleStart(cycle.start);
-    setEditingCycleIndex(index);
-  };
-
-  const confirmDeleteCycle = (index: number) => {
-    Alert.alert("Удалить цикл", "Вы уверены?", [
-      { text: "Отмена", style: "cancel" },
-      { text: "Удалить", style: "destructive", onPress: () => deleteCycle(pet.id, index) },
-    ]);
-  };
-
+  // ---- Cycle ----
   const onCycleStartChange = (_: any, selectedDate?: Date) => {
     setShowCycleStartPicker(false);
     if (!selectedDate) return;
@@ -108,10 +84,8 @@ export default function EventListScreen() {
     setCycleStart(picked);
 
     const newCycle = { start: picked };
-
-    if (editingCycleIndex !== null) {
-      updateCycle(pet.id, editingCycleIndex, newCycle);
-      setEditingCycleIndex(null);
+    if (selectedPetCycle) {
+      updateCycle(pet.id, 0, newCycle); // всегда обновляем первый
     } else {
       addCycle(pet.id, newCycle);
     }
@@ -143,30 +117,9 @@ export default function EventListScreen() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <SafeAreaView style={styles.container}>
-          <CustomHeader title="События и циклы" />
+          <CustomHeader title="События и цикл" />
 
-          {/* ================= Cycles (ВВЕРХУ) ================= */}
-          <Text style={styles.title}>Менструальные цикл</Text>
-          <FlatList
-            data={selectedPetCycles}
-            keyExtractor={(_, index) => `cycle-${index}`}
-            renderItem={({ item, index }) => (
-              <View style={styles.card}>
-                <Text style={styles.cardTitle}>{item.start}</Text>
-                <View style={styles.actions}>
-                  <TouchableOpacity onPress={() => startEditCycle(index)}>
-                    <Ionicons name="pencil" size={20} color="#4A90E2" />
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => confirmDeleteCycle(index)}>
-                    <Ionicons name="trash" size={20} color="red" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-          />
-
-          {/* Form for cycles */}
-         {/* ================= Cycles (ONLY DATEPICKER) ================= */}
+          {/* ================= Cycle ================= */}
           <Text style={styles.title}>Менструальный цикл</Text>
           <View style={styles.form}>
             <TouchableOpacity
@@ -175,7 +128,9 @@ export default function EventListScreen() {
             >
               <Ionicons name="calendar" size={18} color="#4A90E2" />
               <Text style={styles.dateButtonText}>
-                {cycleStart || "Выбрать дату начала"}
+                {cycleStart
+                  ? new Date(cycleStart).toLocaleDateString("ru-RU")
+                  : "Выбрать дату начала"}
               </Text>
             </TouchableOpacity>
 
@@ -184,12 +139,12 @@ export default function EventListScreen() {
                 value={cycleStart ? new Date(cycleStart) : new Date()}
                 mode="date"
                 display={Platform.OS === "ios" ? "spinner" : "default"}
-                onChange={onCycleStartChange}  // 👈 сразу добавляет цикл
+                onChange={onCycleStartChange}
               />
             )}
           </View>
 
-          {/* ================= Events (НИЖЕ) ================= */}
+          {/* ================= Events ================= */}
           <Text style={styles.title}>События</Text>
           <FlatList
             data={selectedPetEvents}
@@ -198,7 +153,9 @@ export default function EventListScreen() {
               <View style={styles.card}>
                 <View>
                   <Text style={styles.cardTitle}>{item.title}</Text>
-                  <Text style={styles.cardDate}>{item.date}</Text>
+                  <Text style={styles.cardDate}>
+                    {new Date(item.date).toLocaleDateString("ru-RU")}
+                  </Text>
                 </View>
                 <View style={styles.actions}>
                   <TouchableOpacity onPress={() => startEdit(index)}>
@@ -225,7 +182,9 @@ export default function EventListScreen() {
               onPress={() => setShowDatePicker(true)}
             >
               <Ionicons name="calendar" size={18} color="#4A90E2" />
-              <Text style={styles.dateButtonText}>{date || "Выбрать дату"}</Text>
+              <Text style={styles.dateButtonText}>
+                {date ? new Date(date).toLocaleDateString("ru-RU") : "Выбрать дату"}
+              </Text>
             </TouchableOpacity>
             {showDatePicker && (
               <DateTimePicker
