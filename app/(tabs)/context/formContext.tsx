@@ -33,7 +33,8 @@ export type PetEvent = {
 type Cycle = {
   id?: string;          // comes from the server
   start: string;        // ISO date (yyyy-mm-dd)
-  end?: string;         // ISO date (nullable)
+  end?: string;
+  period_days: number;           // ISO date (nullable)
   note?: string;        // optional comment
 };
 
@@ -459,6 +460,7 @@ export const PetProvider = ({ children }: PetProviderProps) => {
         id: c.id,
         start: c.start_date,
         end: c.end_date || undefined,
+        period_days: c.period_days,
         note: c.note || undefined,
       }));
 
@@ -491,6 +493,7 @@ export const PetProvider = ({ children }: PetProviderProps) => {
           id: res.data.id,
           start: res.data.start_date,
           end: res.data.end_date || undefined,
+          period_days: res.data.period_days,
           note: res.data.note || undefined,
         }],
       }));
@@ -521,9 +524,10 @@ export const PetProvider = ({ children }: PetProviderProps) => {
       setCycles(prev => {
         const arr = [...(prev[petId] || [])];
         arr[index] = {
-          id: res.data.id,
+           id: res.data.id,
           start: res.data.start_date,
           end: res.data.end_date || undefined,
+          period_days: res.data.period_days,
           note: res.data.note || undefined,
         };
         return { ...prev, [petId]: arr };
